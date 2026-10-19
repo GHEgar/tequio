@@ -59,7 +59,7 @@ const legendOf = (graph: Graph, theme: Theme): LegendItem[] => {
     const s = scaleOf(graph.layout);
     const size = 22 * s;
     const r = 8 * s;
-    const y = graph.area.y1 + (graph.layout.legend + graph.layout.padding) / 2;
+    const y = graph.area.y1 + ((graph.layout.legend + graph.layout.padding) * s) / 2;
     let x = graph.area.x0 + r;
     return graph.statuses.map((status, i) => {
         const item = { key: status.key, label: status.label, color: statusColor(status, i, theme), x, y, r, size };

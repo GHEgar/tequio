@@ -17,12 +17,15 @@ const clamp = (value: number, min: number, max: number): number => Math.min(max,
 
 export const scaleOf = (layout: Layout): number => Math.min(layout.width / 1920, layout.height / 1080);
 
-export const areaOf = (layout: Layout): Area => ({
-    x0: layout.padding,
-    x1: layout.width - layout.padding,
-    y0: layout.padding,
-    y1: layout.height - layout.padding - layout.legend,
-});
+export const areaOf = (layout: Layout): Area => {
+    const s = scaleOf(layout);
+    return {
+        x0: layout.padding * s,
+        x1: layout.width - layout.padding * s,
+        y0: layout.padding * s,
+        y1: layout.height - (layout.padding + layout.legend) * s,
+    };
+};
 
 const centerOf = (area: Area): { x: number; y: number } => ({ x: (area.x0 + area.x1) / 2, y: (area.y0 + area.y1) / 2 });
 
