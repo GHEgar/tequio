@@ -26,6 +26,8 @@ npm install @npmegar/tequio
 |---|---|---|
 | `@npmegar/tequio` | Model, simulation, store, scene, themes, `toSvg` and `toPng` | nothing (`toPng` needs a browser) |
 | `@npmegar/tequio/react` | `<Tequio>`, `useTequio`, `<TequioTable>` | `react >= 19` |
+| `@npmegar/tequio/element` | `<tequio-graph>` custom element, fed by a URL or a property | `react`, `react-dom` |
+| `@npmegar/tequio/standalone` | The same element with React bundled, for a plain `<script>` | nothing |
 | `@npmegar/tequio/schema.json` | JSON Schema of the data, for any language | nothing |
 | `tequio` (bin) | `tequio render` and `tequio validate` from JSON or CSV | Node; PNG needs `@resvg/resvg-js` |
 
@@ -107,6 +109,28 @@ npx @npmegar/tequio validate data.json
 Input is a contract JSON, a JSON array of rows or a CSV (`-` reads stdin). Output goes to stdout unless
 `-o` is given; PNG needs `@resvg/resvg-js` installed next to it. Run `tequio --help` for every option.
 
+## Web component
+
+For a wall screen or any page without React, one script and one tag are enough:
+
+```html
+<script type="module" src="https://unpkg.com/@npmegar/tequio/dist/standalone/tequio-graph.js"></script>
+<tequio-graph src="/api/participation" token="…" refresh="30" theme="dark" tour="8000,15000" locale="es"></tequio-graph>
+```
+
+| Attribute | Default | |
+|---|---|---|
+| `src` | — | URL of the data; `refresh` seconds between polls (`0` once). Failed polls keep the last graph and back off |
+| `token` | — | sent as `Authorization: Bearer`; use a read-only token and serve the page privately |
+| `theme`, `locale` | `dark`, `en` | `locale` also picks built-in Spanish text (`es`) |
+| `tour` | off | present, or `idle,interval` in ms |
+| `info`, `focus`, `legend`, `table` | on | `"false"` turns them off |
+| `width`, `height` | 1920, 1080 | canvas units |
+
+Set `element.data = graph` instead of `src` to feed it yourself. It emits `tequio-load`, `tequio-error`
+and `tequio-node` (`{ id, kind, name }`) and renders in its own shadow root. With npm, import
+`defineTequio` from `@npmegar/tequio/element` and call it once. See [the wall page](https://ghegar.github.io/tequio/tv.html).
+
 ## Themes
 
 `dark` and `light` are token objects (`background`, `surface`, `text`, `muted`, `track`, `font`,
@@ -116,19 +140,15 @@ Input is a contract JSON, a JSON array of rows or a CSV (`-` reads stdin). Outpu
 const theme = { base: 'light', font: 'Inter, sans-serif', tones: { critical: '#b42318' } } as const;
 ```
 
-Status colors come from `status.color`, then from its `tone` (`good`, `warning`, `serious`,
-`critical`, `neutral`), then from the palette. The palette is the validated eight-hue categorical
-order; text always uses ink tokens with a surface halo, never a series color.
+Status colors come from `status.color`, then from its `tone`, then from the palette (the validated
+eight-hue categorical order). Text uses ink tokens with a surface halo, never a series color.
 
 ## Layout
 
-`layout` takes `width`, `height`, `padding`, `legend` and `personRadius`. Padding, legend band and
-radii are in 1920×1080 units and scale with the canvas. Nothing is placed under the legend band; set
-`legend: 0` (or `legend={false}`) to drop it.
-
-The simulation follows d3-force's vocabulary: `forces` (`charge`, `reach`, `linkStrength`, `gravity`,
-`overlap`, `velocityDecay`) and `cooling` (`alphaDecay`, `alphaTarget`). Live graphs keep a small
-`alphaTarget` so they breathe; `settle(graph, steps)` runs the same steps ahead of the first frame.
+`layout` (`width`, `height`, `padding`, `legend`, `personRadius`) is in 1920×1080 units and scales
+with the canvas; nothing lands under the legend band. The simulation uses d3-force's vocabulary
+(`forces`, `cooling` with `alphaDecay` and `alphaTarget`); live graphs keep a small `alphaTarget` so
+they breathe.
 
 ## Export
 

@@ -3,6 +3,21 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [No publicado]
+
+### Agregado
+
+- `<tequio-graph>`: elemento HTML que dibuja el grafo sin React en la página. Lee `src` cada `refresh`
+  segundos con `token` como Bearer, valida con el contrato, conserva el último grafo y espera más entre
+  reintentos si falla, y se pausa con la pestaña oculta. Atributos `theme`, `locale`, `tour`, `info`,
+  `focus`, `legend`, `table`, `width` y `height`; propiedad `data`; eventos `tequio-load`, `tequio-error`
+  y `tequio-node`. `defineTequio` en `@npmegar/tequio/element`.
+- Bundle autónomo `@npmegar/tequio/standalone` (`dist/standalone/tequio-graph.js`, React incluido, 84 kB
+  con gzip) para una página de pantalla con un solo `<script>`.
+- Textos en español integrados: con `locale` `es` el lienzo, la tarjeta y la tabla hablan español
+  (`SPANISH_LABELS`, `SPANISH_INFO_LABELS`, `labelsFor`).
+- Página `tv.html` en el demo con el elemento.
+
 ## [0.3.0] - 2026-10-19
 
 ### Agregado
