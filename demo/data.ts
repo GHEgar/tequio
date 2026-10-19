@@ -18,7 +18,15 @@ export interface DemoOptions {
     tick?: number;
 }
 
+const CYCLE = 40;
+
 const roll = (seed: string, max: number): number => Math.floor(hash(seed) * max);
+
+const bumps = (seed: string, tick: number): number => {
+    let total = 0;
+    for (let t = 1; t <= tick; t += 1) if (hash(`${seed}:${t}`) < 0.06) total += 1 + roll(`${seed}:${t}:size`, 3);
+    return total;
+};
 
 export const demoData = ({ projects = 10, people = 150, tick = 0 }: DemoOptions = {}): GraphData => {
     const links: Link[] = [];
@@ -30,7 +38,7 @@ export const demoData = ({ projects = 10, people = 150, tick = 0 }: DemoOptions 
         let metric = 0;
         for (let k = 0; k <= extra; k += 1) {
             const project = k === 0 ? home : roll(`${id}:p${k}`, projects);
-            const weight = 1 + roll(`${id}:w${k}`, 12) + roll(`${id}:t${k}:${Math.floor(tick / (2 + k))}`, 3) * Math.min(tick, 6);
+            const weight = 1 + roll(`${id}:w${k}`, 12) + bumps(`${id}:${k}`, tick % CYCLE);
             links.push({ person: id, project: `project-${project}`, weight });
             work.set(`project-${project}`, (work.get(`project-${project}`) ?? 0) + weight);
             metric += weight;
@@ -39,7 +47,7 @@ export const demoData = ({ projects = 10, people = 150, tick = 0 }: DemoOptions 
             id,
             name: `${FIRST[i % FIRST.length]} ${LAST[roll(`${id}:last`, LAST.length)]}`,
             metric,
-            active: hash(`${id}:active:${Math.floor(tick / 3)}`) > 0.3,
+            active: hash(`${id}:active:${Math.floor((tick + roll(`${id}:phase`, 4)) / 4)}`) > 0.3,
         };
     });
     const projectList: Project[] = Array.from({ length: projects }, (_, i) => {
