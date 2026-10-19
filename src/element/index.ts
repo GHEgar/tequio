@@ -10,7 +10,7 @@ import type { Source } from './source.js';
 export { load, startSource } from './source.js';
 export type { Source, SourceOptions } from './source.js';
 
-export const ATTRIBUTES = ['src', 'refresh', 'token', 'theme', 'tour', 'locale', 'info', 'focus', 'legend', 'width', 'height', 'table'] as const;
+export const ATTRIBUTES = ['src', 'refresh', 'token', 'theme', 'tour', 'locale', 'info', 'focus', 'legend', 'width', 'height', 'table', 'animated'] as const;
 
 const STYLE = `:host{display:block;position:relative;width:100%;height:100%}
 .tequio{width:100%;height:100%}
@@ -52,6 +52,7 @@ export const propsOf = (el: HTMLElement): Omit<TequioProps, 'data'> => {
         focus: flag(el.getAttribute('focus'), true),
         legend: flag(el.getAttribute('legend'), true),
         table: flag(el.getAttribute('table'), true),
+        animated: el.getAttribute('animated') === 'always' ? 'always' : flag(el.getAttribute('animated'), true),
         layout: width || height ? layout : undefined,
     };
 };

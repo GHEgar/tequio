@@ -87,8 +87,10 @@ export const Tequio = ({
             onWheel={poke}
             onKeyDown={onKeyDown}
             onClick={onClick}
+            data-tequio={id}
             {...rest}
         >
+            {interactive && <style>{`[data-tequio="${id}"] g[role=button]:focus:not(:focus-visible){outline:none}`}</style>}
             <defs>
                 <clipPath id={clip} clipPathUnits="objectBoundingBox"><circle cx={0.5} cy={0.5} r={0.5} /></clipPath>
             </defs>

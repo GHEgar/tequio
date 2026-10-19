@@ -8,7 +8,7 @@ import type { Register } from './animation.js';
 
 export interface UseGraphOptions {
     layout?: Partial<Layout> | undefined;
-    animated?: boolean | undefined;
+    animated?: boolean | 'always' | undefined;
     forces?: Forces | undefined;
     cooling?: Cooling | undefined;
 }
@@ -58,8 +58,9 @@ export const useGraph = (data: GraphData, options: UseGraphOptions = {}): UseGra
         return () => clearTimeout(timer);
     }, [store, snapshot.pulses]);
 
-    const register = useAnimation(snapshot.graph, { running: animated && !reducedMotion, forces, cooling });
-    return { store, snapshot, pulses: reducedMotion ? NO_PULSES : snapshot.pulses, register, reducedMotion };
+    const still = reducedMotion && animated !== 'always';
+    const register = useAnimation(snapshot.graph, { running: !!animated && !still, forces, cooling });
+    return { store, snapshot, pulses: still ? NO_PULSES : snapshot.pulses, register, reducedMotion: still };
 };
 
 export const useScene = (graph: Graph | null, options: UseSceneOptions = {}): Scene | null => {

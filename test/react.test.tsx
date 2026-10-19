@@ -129,3 +129,35 @@ describe('focus', () => {
         expect(container.querySelectorAll('[data-dimmed]')).toHaveLength(0);
     });
 });
+
+describe('reduced motion', () => {
+    const reduce = (matches: boolean): void => {
+        window.matchMedia = ((query: string) => ({
+            matches, media: query, onchange: null,
+            addEventListener: () => undefined, removeEventListener: () => undefined,
+            addListener: () => undefined, removeListener: () => undefined, dispatchEvent: () => false,
+        })) as unknown as typeof window.matchMedia;
+    };
+
+    it('stops pulses when the system asks for less motion, unless animated is "always"', () => {
+        reduce(true);
+        try {
+            const first = demoData({ projects: 3, people: 10, tick: 0 });
+            const next = demoData({ projects: 3, people: 10, tick: 4 });
+            const pulsing = (container: HTMLElement): number => container.querySelectorAll('g[data-kind] > circle[stroke-width="4"][fill="none"]').length;
+            const quiet = render(<Tequio data={first} />);
+            act(() => {
+                quiet.rerender(<Tequio data={next} />);
+            });
+            expect(pulsing(quiet.container)).toBe(0);
+            quiet.unmount();
+            const forced = render(<Tequio data={first} animated="always" />);
+            act(() => {
+                forced.rerender(<Tequio data={next} animated="always" />);
+            });
+            expect(pulsing(forced.container)).toBeGreaterThan(0);
+        } finally {
+            reduce(false);
+        }
+    });
+});
