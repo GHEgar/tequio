@@ -5,7 +5,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [No publicado]
 
+### Agregado
+
+- Contrato de datos: `schema.json` (JSON Schema, también en `@npmegar/tequio/schema.json`) y
+  `validate(data)`, que devuelve cada error con su ruta y avisa lo que se omitiría.
+- `fromRows` convierte cualquier tabla de trabajo (una fila por tarea, caso o ticket) en el contrato con
+  un mapeo de columnas o funciones; `parseCsv` lee CSV con comillas, BOM y separador `,` `;` o tabulador.
+- `guessTone`: los estados derivados de los datos toman tono por palabras comunes en inglés y español
+  (*done*, *pasa*, *failed*, *falla*, *blocked*, *no pude*, *pending*, *pendiente*…).
+- CLI `tequio render` (JSON, filas o CSV a SVG, o a PNG con `@resvg/resvg-js`) y `tequio validate`.
+- Foco: con una tarjeta abierta se atenúa todo menos el nodo, sus vecinos directos y sus enlaces
+  (`focus` en `<Tequio>`, `toSvg` y `buildScene`; token `dimOpacity` en los temas). `focusOf` en el core.
+- `useGraph` y `useScene`, las dos mitades de `useTequio`, para renders propios con foco.
+
 ### Cambiado
+
+- Los enlaces salen del borde exterior de cada nodo (`linkEnds`), no del centro: atenuados ya no se ve
+  que atraviesan los círculos.
+- `toSvg` redondea a dos decimales: las opacidades como 0.14 o 0.45 ya no se redondeaban a 0.1 y 0.5.
 
 - El nodo de proyecto ya no muestra el porcentaje de avance: solo el logo o la inicial, más grandes, y
   el anillo de estados. El avance queda en la tarjeta del infobox.

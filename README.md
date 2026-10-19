@@ -26,6 +26,8 @@ npm install @npmegar/tequio
 |---|---|---|
 | `@npmegar/tequio` | Model, simulation, store, scene, themes, `toSvg` and `toPng` | nothing (`toPng` needs a browser) |
 | `@npmegar/tequio/react` | `<Tequio>`, `useTequio`, `<TequioTable>` | `react >= 19` |
+| `@npmegar/tequio/schema.json` | JSON Schema of the data, for any language | nothing |
+| `tequio` (bin) | `tequio render` and `tequio validate` from JSON or CSV | Node; PNG needs `@resvg/resvg-js` |
 
 ## Quick start
 
@@ -68,6 +70,43 @@ The SVG scales to its container through `viewBox`; give the container a size, su
 
 Every person has the same size. Projects grow with the total weight of their links.
 
+## From any system
+
+The data is a plain JSON contract, published as [`schema.json`](schema.json). Any backend can emit it
+without depending on tequio; `validate(data)` returns every problem with its path, and warnings for
+what would be skipped (a link to a missing person, a count for an undeclared status).
+
+Most systems already have a table of work: one row per task, case or ticket. `fromRows` turns it into
+the contract by naming its columns:
+
+```ts
+import { fromRows, parseCsv } from '@npmegar/tequio';
+
+const data = fromRows(parseCsv(csv), { person: 'owner', project: 'repo', status: 'state', weight: 'hours' });
+```
+
+| Mapping | Default | Becomes |
+|---|---|---|
+| `person`, `project` | required | ids (and names, unless `personName`, `projectName`) |
+| `status` | — | counts per project; tones guessed from words like *done*, *failed*, *blocked*, *pending*, also in Spanish |
+| `weight` | 1 per row | link weights and each person's metric |
+| `active` | — | `true` if any row says yes |
+| `open` | neutral statuses | statuses not done yet, for `progress`; or pass `progress(rows)` |
+
+Each field takes a column name or a function of the row. `parseCsv` handles quotes, BOM and `,` `;` or
+tab separators.
+
+## Command line
+
+```bash
+npx @npmegar/tequio render work.csv --status state --weight hours -o participation.svg
+npx @npmegar/tequio render data.json --theme dark --width 1600 --height 900 -o wall.png
+npx @npmegar/tequio validate data.json
+```
+
+Input is a contract JSON, a JSON array of rows or a CSV (`-` reads stdin). Output goes to stdout unless
+`-o` is given; PNG needs `@resvg/resvg-js` installed next to it. Run `tequio --help` for every option.
+
 ## Themes
 
 `dark` and `light` are token objects (`background`, `surface`, `text`, `muted`, `track`, `font`,
@@ -96,12 +135,13 @@ The simulation follows d3-force's vocabulary: `forces` (`charge`, `reach`, `link
 ```ts
 import { toPng, toSvg } from '@npmegar/tequio';
 
-const svg = toSvg(data, { theme: 'light', layout: { width: 1600, height: 1000 } });
+const svg = toSvg(data, { theme: 'light', layout: { width: 1600, height: 1000 }, focus: 'u:ana' });
 const png = await toPng(data, { theme: 'light', scale: 2 });
 ```
 
 `toSvg` builds, settles and serializes without a DOM, so it runs in Node, in a worker or at build time.
-The same data and options always give the same string. `toPng` inlines remote logos and avatars as
+The same data and options always give the same string. `focus` takes a node id (`p:` for projects,
+`u:` for people) to dim everything else, for a per-person or per-project figure. `toPng` inlines remote logos and avatars as
 data URIs before drawing, so the canvas is never tainted.
 
 ![The light theme exported for print at 960 × 600](.github/assets/print.png)
@@ -137,6 +177,7 @@ going round. Any pointer, wheel or key input stops it until the graph is idle ag
 | `step` · `settle` · `cool` | One tick, many ticks, alpha decay |
 | `createStore({ layout, forces })` | `update(data)`, `subscribe`, `getSnapshot`, `clearPulses` |
 | `infoPlan(graph, id)` · `infoPlacement(graph, node, plan)` | What the info box says, and where it goes |
+| `focusOf(graph, id)` · `linkEnds(link, scale)` | Neighbors to keep in focus; link ends on the outer edge of each node |
 | `buildScene(graph, options)` | Shapes per node, links, legend and labels: what any renderer draws |
 | `sceneToSvg(scene)` | Serialize a scene |
 
@@ -152,6 +193,7 @@ going round. Any pointer, wheel or key input stops it until the graph is idle ag
 | `animated` | `true` | `false` draws once; `prefers-reduced-motion` turns motion and pulses off |
 | `info` | `true` | clicking a node opens its info box; nodes become focusable buttons (Enter and Space) |
 | `tour` | `false` | `true` or `{ idle, interval }`: open cards by themselves while nobody interacts |
+| `focus` | `true` | while a card is open, dim everything but the node, its direct neighbors and their links |
 | `renderInfo` | — | `(plan) => node` to paint the card yourself |
 | `onNode` | — | called on click or Enter with the node |
 | `table` | `false` | renders `<TequioTable>` visually hidden after the SVG |
