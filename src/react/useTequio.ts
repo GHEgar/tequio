@@ -1,33 +1,44 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { buildScene, createStore } from '../core/index.js';
 import type {
-    Cooling, Forces, GraphData, GraphStore, Labels, Layout, Pulse, Scene, Snapshot, ThemeInput,
+    Cooling, Forces, Graph, GraphData, GraphStore, Labels, Layout, Pulse, Scene, Snapshot, ThemeInput,
 } from '../core/index.js';
 import { PULSE_MS, PULSE_REPEAT, useAnimation, useReducedMotion } from './animation.js';
 import type { Register } from './animation.js';
 
-export interface UseTequioOptions {
-    theme?: ThemeInput | undefined;
+export interface UseGraphOptions {
     layout?: Partial<Layout> | undefined;
-    locale?: string | undefined;
-    labels?: Partial<Labels> | undefined;
-    legend?: boolean | undefined;
     animated?: boolean | undefined;
     forces?: Forces | undefined;
     cooling?: Cooling | undefined;
 }
 
-export interface UseTequio {
+export interface UseSceneOptions {
+    theme?: ThemeInput | undefined;
+    locale?: string | undefined;
+    labels?: Partial<Labels> | undefined;
+    legend?: boolean | undefined;
+    focus?: string | null | undefined;
+}
+
+export interface UseTequioOptions extends UseGraphOptions, UseSceneOptions {}
+
+export interface UseGraph {
     store: GraphStore;
     snapshot: Snapshot;
-    scene: Scene | null;
     pulses: ReadonlyMap<string, Pulse>;
     register: Register;
     reducedMotion: boolean;
 }
 
-export const useTequio = (data: GraphData, options: UseTequioOptions = {}): UseTequio => {
-    const { theme, layout, locale, labels, legend, animated = true, forces, cooling } = options;
+export interface UseTequio extends UseGraph {
+    scene: Scene | null;
+}
+
+const NO_PULSES: ReadonlyMap<string, Pulse> = new Map();
+
+export const useGraph = (data: GraphData, options: UseGraphOptions = {}): UseGraph => {
+    const { layout, animated = true, forces, cooling } = options;
     const layoutKey = JSON.stringify(layout ?? {});
     const forcesKey = JSON.stringify(forces ?? null);
     const store = useMemo(() => createStore({
@@ -47,12 +58,20 @@ export const useTequio = (data: GraphData, options: UseTequioOptions = {}): UseT
         return () => clearTimeout(timer);
     }, [store, snapshot.pulses]);
 
-    const { graph } = snapshot;
-    const scene = useMemo(
-        () => (graph ? buildScene(graph, { theme, locale, labels, legend }) : null),
-        [graph, theme, locale, labels, legend],
+    const register = useAnimation(snapshot.graph, { running: animated && !reducedMotion, forces, cooling });
+    return { store, snapshot, pulses: reducedMotion ? NO_PULSES : snapshot.pulses, register, reducedMotion };
+};
+
+export const useScene = (graph: Graph | null, options: UseSceneOptions = {}): Scene | null => {
+    const { theme, locale, labels, legend, focus } = options;
+    return useMemo(
+        () => (graph ? buildScene(graph, { theme, locale, labels, legend, focus }) : null),
+        [graph, theme, locale, labels, legend, focus],
     );
-    const register = useAnimation(graph, { running: animated && !reducedMotion, forces, cooling });
-    const pulses = reducedMotion ? new Map<string, Pulse>() : snapshot.pulses;
-    return { store, snapshot, scene, pulses, register, reducedMotion };
+};
+
+export const useTequio = (data: GraphData, options: UseTequioOptions = {}): UseTequio => {
+    const state = useGraph(data, options);
+    const scene = useScene(state.snapshot.graph, options);
+    return { ...state, scene };
 };

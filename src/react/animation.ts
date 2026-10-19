@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { DEFAULT_COOLING, DEFAULT_FORCES, cool, step } from '../core/index.js';
+import { DEFAULT_COOLING, DEFAULT_FORCES, cool, linkEnds, scaleOf, step } from '../core/index.js';
 import type { Cooling, Forces, Graph, GraphLink } from '../core/index.js';
 
 export const PULSE_MS = 1600;
@@ -29,6 +29,7 @@ const fixed = (n: number): string => n.toFixed(1);
 
 interface Frame {
     graph: Graph;
+    scale: number;
     links: Map<string, GraphLink>;
     starts: Map<string, number>;
 }
@@ -41,10 +42,11 @@ const draw = (tracked: Map<Element, Tracked>, frame: Frame, now: number): void =
         } else if (t.kind === 'link') {
             const link = frame.links.get(t.id);
             if (!link) continue;
-            el.setAttribute('x1', fixed(link.source.x));
-            el.setAttribute('y1', fixed(link.source.y));
-            el.setAttribute('x2', fixed(link.target.x));
-            el.setAttribute('y2', fixed(link.target.y));
+            const ends = linkEnds(link, frame.scale);
+            el.setAttribute('x1', fixed(ends.x1));
+            el.setAttribute('y1', fixed(ends.y1));
+            el.setAttribute('x2', fixed(ends.x2));
+            el.setAttribute('y2', fixed(ends.y2));
         } else {
             if (!frame.starts.has(t.key)) frame.starts.set(t.key, now);
             const elapsed = now - (frame.starts.get(t.key) ?? now);
@@ -84,7 +86,7 @@ export const useAnimation = (graph: Graph | null, options: AnimationOptions): Re
         if (!graph) return undefined;
         const old = clock() - PULSE_MS * PULSE_REPEAT * 2;
         for (const [key, start] of starts.current) if (start < old) starts.current.delete(key);
-        const frame: Frame = { graph, links: new Map(graph.links.map((l) => [l.id, l])), starts: starts.current };
+        const frame: Frame = { graph, scale: scaleOf(graph.layout), links: new Map(graph.links.map((l) => [l.id, l])), starts: starts.current };
         draw(tracked.current, frame, clock());
         if (!running) return undefined;
         let alpha = 0.3;

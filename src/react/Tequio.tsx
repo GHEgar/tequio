@@ -7,14 +7,14 @@ import { Link, Node } from './Nodes.js';
 import type { Handler, NodeEvent } from './Nodes.js';
 import { Legend } from './Shapes.js';
 import { TequioTable } from './TequioTable.js';
-import { useTequio } from './useTequio.js';
+import { useGraph, useScene } from './useTequio.js';
 import type { UseTequioOptions } from './useTequio.js';
 import { useTour } from './useTour.js';
 import type { TourOptions } from './useTour.js';
 
 export type { NodeEvent };
 
-export interface TequioProps extends UseTequioOptions, Omit<SVGProps<SVGSVGElement>, 'onSelect'> {
+export interface TequioProps extends Omit<UseTequioOptions, 'focus'>, Omit<SVGProps<SVGSVGElement>, 'onSelect'> {
     data: GraphData;
     background?: boolean | undefined;
     table?: boolean | undefined;
@@ -22,6 +22,7 @@ export interface TequioProps extends UseTequioOptions, Omit<SVGProps<SVGSVGEleme
     infoLabels?: Partial<InfoLabels> | undefined;
     renderInfo?: ((plan: InfoPlan) => ReactNode) | undefined;
     tour?: boolean | TourOptions | undefined;
+    focus?: boolean | undefined;
     onNode?: ((node: GraphNode, event: NodeEvent) => void) | undefined;
 }
 
@@ -31,15 +32,16 @@ const hidden = {
 
 export const Tequio = ({
     data, theme, layout, locale, labels, legend, animated, forces, cooling, background = true, table = false,
-    info = true, infoLabels: infoText, renderInfo, tour = false, onNode, ...rest
+    info = true, infoLabels: infoText, renderInfo, tour = false, focus = true, onNode, ...rest
 }: TequioProps): ReactElement | null => {
     const id = useId().replace(/:/g, '');
-    const { scene, snapshot, pulses, register } = useTequio(data, { theme, layout, locale, labels, legend, animated, forces, cooling });
+    const { snapshot, pulses, register, reducedMotion } = useGraph(data, { layout, animated, forces, cooling });
     const latest = useRef(onNode);
     useEffect(() => {
         latest.current = onNode;
     });
-    const order = useMemo(() => scene?.nodes.map((n) => n.id) ?? [], [scene]);
+    const { graph } = snapshot;
+    const order = useMemo(() => graph?.nodes.map((n) => n.id) ?? [], [graph]);
     const touring = useTour(info && tour !== false, tour === true || tour === false ? {} : tour, snapshot.version, order, pulses);
     const { select, toggle } = touring;
     const handle = useCallback<Handler>((node, event) => {
@@ -48,13 +50,15 @@ export const Tequio = ({
     }, [info, toggle]);
     const interactive = info || !!onNode;
     const open = info ? touring.id : null;
-    const { graph } = snapshot;
+    const scene = useScene(graph, { theme, locale, labels, legend, focus: focus ? open : null });
     const plan = useMemo(
         () => (graph && open ? infoPlan(graph, open, { theme, locale, labels: infoText }) : null),
         [graph, open, theme, locale, infoText],
     );
     if (!scene || !graph) return null;
     const clip = `${id}-round`;
+    const scale = scaleOf(graph.layout);
+    const transition = reducedMotion ? undefined : 'opacity 400ms ease';
     const node = plan ? graph.byId.get(plan.id) : undefined;
 
     const poke = (): void => touring.poke();
@@ -90,10 +94,18 @@ export const Tequio = ({
             </defs>
             {background && <rect width={scene.width} height={scene.height} fill={scene.theme.background} />}
             <g strokeLinecap="round">
-                {scene.links.map((l) => <Link key={l.id} item={l} register={register} />)}
+                {scene.links.map((l) => <Link key={l.id} item={l} register={register} scale={scale} transition={transition} />)}
             </g>
             {scene.nodes.map((item) => (
-                <Node key={item.id} item={item} clip={clip} pulse={pulses.get(item.id)?.key} register={register} onNode={interactive ? handle : undefined} />
+                <Node
+                    key={item.id}
+                    item={item}
+                    clip={clip}
+                    pulse={pulses.get(item.id)?.key}
+                    register={register}
+                    onNode={interactive ? handle : undefined}
+                    transition={transition}
+                />
             ))}
             <Legend scene={scene} />
             {plan && node && (
@@ -101,10 +113,10 @@ export const Tequio = ({
                     key={plan.id}
                     plan={plan}
                     origin={node}
-                    ring={node.r + (node.kind === 'project' ? 20 : 9) * scaleOf(graph.layout)}
+                    ring={node.r + (node.kind === 'project' ? 20 : 9) * scale}
                     placement={infoPlacement(graph, node, plan)}
                     theme={scene.theme}
-                    scale={scaleOf(graph.layout)}
+                    scale={scale}
                     register={register}
                     closeLabel={infoLabels(infoText).close}
                     onClose={touring.manual ? () => select(null) : undefined}

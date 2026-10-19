@@ -15,7 +15,7 @@ export const personKey = (id: string): string => `u:${id}`;
 
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 
-export const scaleOf = (layout: Layout): number => Math.min(layout.width / 1920, layout.height / 1080);
+export const scaleOf = (layout: Pick<Layout, 'width' | 'height'>): number => Math.min(layout.width / 1920, layout.height / 1080);
 
 export const areaOf = (layout: Layout): Area => {
     const s = scaleOf(layout);

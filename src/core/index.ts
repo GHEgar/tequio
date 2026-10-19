@@ -1,5 +1,7 @@
 export { parseCsv, parseCsvRows } from './csv.js';
 export type { CsvOptions } from './csv.js';
+export { focusOf, linkEnds } from './focus.js';
+export type { Focus, Segment } from './focus.js';
 export { hash } from './hash.js';
 export { DEFAULT_INFO_LABELS, estimateHeight, infoLabels, infoPlacement, infoPlan, safeHref } from './info.js';
 export type { InfoBlock, InfoItem, InfoLabels, InfoOptions, InfoPlan, Placement } from './info.js';
@@ -11,7 +13,7 @@ export { inlineImages, svgToPng, toPng } from './png.js';
 export type { PngOptions } from './png.js';
 export { buildScene, sceneNode } from './scene.js';
 export type { LegendItem, Scene, SceneLink, SceneNode, SceneOptions } from './scene.js';
-export { personColor, projectColor, statusColor } from './shapes.js';
+export { personColor, projectColor, ringRadius, statusColor } from './shapes.js';
 export type { CircleShape, ImageShape, Shape, TextShape } from './shapes.js';
 export { DEFAULT_COOLING, DEFAULT_FORCES, cool, initialSteps, settle, step } from './simulation.js';
 export type { Cooling, Forces } from './simulation.js';

@@ -108,3 +108,24 @@ describe('info box', () => {
         }
     });
 });
+
+describe('focus', () => {
+    it('dims what is not connected to the selected node and restores it on close', () => {
+        const data = demoData({ projects: 3, people: 12 });
+        const { container } = render(<Tequio data={data} animated={false} />);
+        expect(container.querySelectorAll('[data-dimmed]')).toHaveLength(0);
+        const project = container.querySelector('g[data-kind="project"]') as SVGGElement;
+        fireEvent.click(project);
+        const dimmed = container.querySelectorAll('[data-dimmed]').length;
+        expect(dimmed).toBeGreaterThan(0);
+        expect(project.hasAttribute('data-dimmed')).toBe(false);
+        fireEvent.keyDown(container.querySelector('svg') as SVGSVGElement, { key: 'Escape' });
+        expect(container.querySelectorAll('[data-dimmed]')).toHaveLength(0);
+    });
+
+    it('can be turned off', () => {
+        const { container } = render(<Tequio data={demoData({ projects: 3, people: 12 })} animated={false} focus={false} />);
+        fireEvent.click(container.querySelector('g[data-kind="project"]') as SVGGElement);
+        expect(container.querySelectorAll('[data-dimmed]')).toHaveLength(0);
+    });
+});

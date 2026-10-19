@@ -1,4 +1,5 @@
-import { buildGraph } from './model.js';
+import { linkEnds } from './focus.js';
+import { buildGraph, scaleOf } from './model.js';
 import { buildScene } from './scene.js';
 import type { Scene, SceneOptions } from './scene.js';
 import type { Shape } from './shapes.js';
@@ -20,7 +21,7 @@ const escape = (text: string): string => text
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-const n = (value: number): string => String(Math.round(value * 10) / 10);
+const n = (value: number): string => String(Math.round(value * 100) / 100);
 
 const attrs = (pairs: Record<string, string | number | undefined>): string => Object.entries(pairs)
     .filter(([, v]) => v !== undefined)
@@ -62,10 +63,11 @@ export const sceneToSvg = (scene: Scene, options: { background?: boolean | undef
     ];
     if (options.background !== false) parts.push(`<rect${attrs({ width: scene.width, height: scene.height, fill: theme.background })}/>`);
     parts.push('<g stroke-linecap="round">');
+    const s = scaleOf(scene);
     for (const l of scene.links) {
-        const { source: a, target: b } = l.link;
         parts.push(`<line${attrs({
-            x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: l.color, 'stroke-width': l.width, 'stroke-opacity': l.opacity,
+            ...linkEnds(l.link, s), stroke: l.color, 'stroke-width': l.width, 'stroke-opacity': l.opacity,
+            opacity: l.fade === 1 ? undefined : l.fade,
         })}/>`);
     }
     parts.push('</g>');
