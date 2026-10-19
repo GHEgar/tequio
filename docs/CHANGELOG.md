@@ -3,6 +3,19 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [0.5.0] - 2026-10-19
+
+### Agregado
+
+- `animated="always"` (prop de `<Tequio>` y atributo de `<tequio-graph>`): mantiene el movimiento y los
+  pulsos aunque el sistema pida reducir movimiento. Pensado para una pantalla en la pared o cuando la
+  persona lo elige; el valor por omisión sigue respetando `prefers-reduced-motion`.
+
+### Corregido
+
+- El recuadro de foco que el navegador pintaba al hacer clic con el ratón en un nodo: `<Tequio>` lo
+  quita para su propio SVG y deja el foco de teclado (`:focus-visible`).
+
 ## [0.4.0] - 2026-10-19
 
 ### Agregado
@@ -92,6 +105,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 - Demo con 10 proyectos y 150 personas, datos vivos, modo TV y export a SVG y PNG: 60 fps en el build de
   producción a 1920 × 1080.
 
+[0.5.0]: https://github.com/GHEgar/tequio/releases/tag/v0.5.0
 [0.4.0]: https://github.com/GHEgar/tequio/releases/tag/v0.4.0
 [0.3.0]: https://github.com/GHEgar/tequio/releases/tag/v0.3.0
 [0.2.0]: https://github.com/GHEgar/tequio/releases/tag/v0.2.0
