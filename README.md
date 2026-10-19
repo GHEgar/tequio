@@ -6,7 +6,7 @@
 
 Live participation graph: projects at the center, people around, links as thick as the work. TV and print.
 
-![Five projects and forty people: two live updates pulse the nodes that changed, then the same graph in the light theme](.github/assets/demo.gif)
+![Five projects and forty people left alone: each live update pulses the nodes that changed and opens the info box of one of them, then the same tour in the light theme](.github/assets/demo.gif)
 
 **[Live demo](https://ghegar.github.io/tequio/)**
 
@@ -63,6 +63,7 @@ The SVG scales to its container through `viewBox`; give the container a size, su
 | `person.metric` | number inside the person |
 | `person.avatar` | photo behind the number; without it, `person.color` |
 | `person.active` | outer ring when active, faded when `false` |
+| `description`, `details` | only in the info box: a paragraph and label/value rows (`href` allowed) |
 | `link.weight` | link width and length, relative to the heaviest link |
 
 Every person has the same size. Projects grow with the total weight of their links.
@@ -105,6 +106,28 @@ data URIs before drawing, so the canvas is never tainted.
 
 ![The light theme exported for print at 960 × 600](.github/assets/print.png)
 
+## Info box
+
+Clicking a node opens a card next to it; Escape, the close button or a click elsewhere closes it.
+`infoPlan(graph, id)` decides everything (title, cards, rows, formatted values) and `<InfoBox>` only
+paints the plan with theme tokens, inside the SVG so it scales with the screen and follows the node.
+
+| Node | Card |
+|---|---|
+| Project | progress, people and work; counts per status; top contributors; `description`; `details` |
+| Person | active badge; metric and project count; projects with their weight; `description`; `details` |
+
+The card goes above, below, right or left of the node, whichever fits, and is clamped to the canvas.
+Hrefs in `details` pass only for `http(s):`, `mailto:`, `tel:` and relative paths.
+
+**Tour.** With `tour`, a wall display explains itself: after `idle` ms without input it opens a card on
+every data update (or every `interval` ms), starting with the nodes that just changed and otherwise
+going round. Any pointer, wheel or key input stops it until the graph is idle again.
+
+```tsx
+<Tequio data={data} tour={{ idle: 8000, interval: 6000 }} infoLabels={{ progress: 'Avance' }} />
+```
+
 ## Core
 
 | Function | Does |
@@ -113,6 +136,7 @@ data URIs before drawing, so the canvas is never tainted.
 | `remember(graph, memory)` · `changes(graph, memory)` | Keep positions; list the nodes to pulse |
 | `step` · `settle` · `cool` | One tick, many ticks, alpha decay |
 | `createStore({ layout, forces })` | `update(data)`, `subscribe`, `getSnapshot`, `clearPulses` |
+| `infoPlan(graph, id)` · `infoPlacement(graph, node, plan)` | What the info box says, and where it goes |
 | `buildScene(graph, options)` | Shapes per node, links, legend and labels: what any renderer draws |
 | `sceneToSvg(scene)` | Serialize a scene |
 
@@ -126,7 +150,10 @@ data URIs before drawing, so the canvas is never tainted.
 |---|---|---|
 | `theme` | `'dark'` | name or overrides |
 | `animated` | `true` | `false` draws once; `prefers-reduced-motion` turns motion and pulses off |
-| `onNode` | — | makes nodes focusable buttons (Enter and Space) |
+| `info` | `true` | clicking a node opens its info box; nodes become focusable buttons (Enter and Space) |
+| `tour` | `false` | `true` or `{ idle, interval }`: open cards by themselves while nobody interacts |
+| `renderInfo` | — | `(plan) => node` to paint the card yourself |
+| `onNode` | — | called on click or Enter with the node |
 | `table` | `false` | renders `<TequioTable>` visually hidden after the SVG |
 | `layout`, `locale`, `labels`, `legend`, `forces`, `cooling`, `background` | | as in the core |
 
@@ -152,9 +179,9 @@ npm run demo
 npm run e2e
 ```
 
-The demo shows ten projects and 150 people whose data changes every three seconds, with a TV mode
-(full screen), both themes and SVG/PNG export. Its production build holds 60 fps at 1920 × 1080 with
-no long frames, including updates.
+The demo shows five projects and forty people whose data changes every three seconds, touring its
+nodes when left alone, with a TV mode (full screen), both themes, SVG/PNG export and a 150-people
+stress size. Its production build holds 60 fps at 1920 × 1080 with 150 people and the tour running.
 
 ## Contributing
 

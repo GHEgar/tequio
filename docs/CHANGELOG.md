@@ -3,6 +3,29 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [No publicado]
+
+### Agregado
+
+- Infobox: un clic en un nodo abre una tarjeta junto a él. `infoPlan` decide todo (avance, gente,
+  trabajo, conteos por estado y quienes más aportan en un proyecto; actividad, métrica y proyectos con
+  su peso en una persona) y `<InfoBox>` solo la pinta con los tokens del tema, dentro del SVG.
+- `description` y `details` (etiqueta, valor y `href` opcional) en proyectos y personas, solo para la
+  tarjeta. Los `href` pasan únicamente con `http(s):`, `mailto:`, `tel:` o rutas relativas.
+- `infoPlacement`: arriba, abajo, derecha o izquierda según quepa, acotada al lienzo, con flecha y
+  anillo punteado sobre el nodo.
+- Recorrido (`tour`): sin interacción durante `idle` ms abre la tarjeta de un nodo en cada
+  actualización de datos o cada `interval` ms, empezando por los que acaban de cambiar. Cualquier
+  entrada lo pausa.
+- Props `info`, `tour`, `infoLabels` y `renderInfo`; `useTour` y `nextOf` para un render propio.
+
+### Cambiado
+
+- Con `info` (activo por omisión) los nodos son botones enfocables aunque no haya `onNode`, y el SVG
+  pasa de `role="img"` a `role="group"`. `info={false}` vuelve al comportamiento anterior.
+- El demo arranca con 5 proyectos y 40 personas, con el recorrido activo; 150 personas quedan como
+  tamaño de prueba de carga.
+
 ## [0.1.0] - 2026-10-19
 
 ### Agregado
