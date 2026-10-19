@@ -41,10 +41,15 @@
             "types": "./dist/react/index.d.ts",
             "import": "./dist/react/index.js"
         },
-        "./schema.json": "./schema.json"
+        "./schema.json": "./schema.json",
+        "./element": {
+            "types": "./dist/element/index.d.ts",
+            "import": "./dist/element/index.js"
+        },
+        "./standalone": "./dist/standalone/tequio-graph.js"
     },
     "scripts": {
-        "build": "rm -rf dist && tsc -p tsconfig.build.json",
+        "build": "rm -rf dist && tsc -p tsconfig.build.json && vite build --config vite.standalone.config.ts",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "lint": "eslint .",
         "test": "vitest run",
@@ -55,13 +60,17 @@
     },
     "peerDependencies": {
         "react": ">=19",
-        "@resvg/resvg-js": ">=2.6"
+        "@resvg/resvg-js": ">=2.6",
+        "react-dom": ">=19"
     },
     "peerDependenciesMeta": {
         "react": {
             "optional": true
         },
         "@resvg/resvg-js": {
+            "optional": true
+        },
+        "react-dom": {
             "optional": true
         }
     },

@@ -19,6 +19,9 @@
             "node"
         ],
         "paths": {
+            "@npmegar/tequio/element": [
+                "./src/element/index.ts"
+            ],
             "@npmegar/tequio/react": [
                 "./src/react/index.ts"
             ],

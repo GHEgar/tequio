@@ -6,6 +6,7 @@ const src = (path: string): string => fileURLToPath(new URL(`./src/${path}`, imp
 export default defineConfig({
     resolve: {
         alias: [
+            { find: /^@npmegar\/tequio\/element$/, replacement: src('element/index.ts') },
             { find: /^@npmegar\/tequio\/react$/, replacement: src('react/index.ts') },
             { find: /^@npmegar\/tequio$/, replacement: src('core/index.ts') },
         ],
