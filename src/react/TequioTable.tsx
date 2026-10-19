@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { ReactElement } from 'react';
-import { formatters } from '../core/index.js';
+import { formatters, isSpanish } from '../core/index.js';
 import type { GraphData } from '../core/index.js';
 
 export interface TequioTableProps {
@@ -12,12 +12,26 @@ export interface TequioTableProps {
     no?: string | undefined;
 }
 
-const HEADERS = { name: 'Name', progress: 'Progress', people: 'People', metric: 'Metric', active: 'Active', projects: 'Projects' };
-const CAPTIONS = { projects: 'Projects', people: 'People' };
+const TEXT = {
+    en: {
+        headers: { name: 'Name', progress: 'Progress', people: 'People', metric: 'Metric', active: 'Active', projects: 'Projects' },
+        captions: { projects: 'Projects', people: 'People' },
+        yes: 'Yes',
+        no: 'No',
+    },
+    es: {
+        headers: { name: 'Nombre', progress: 'Avance', people: 'Personas', metric: 'Métrica', active: 'Activa', projects: 'Proyectos' },
+        captions: { projects: 'Proyectos', people: 'Personas' },
+        yes: 'Sí',
+        no: 'No',
+    },
+};
 
 export const TequioTable = ({
-    data, locale, captions = CAPTIONS, headers = HEADERS, yes = 'Yes', no = 'No',
+    data, locale, ...text
 }: TequioTableProps): ReactElement => {
+    const base = TEXT[isSpanish(locale) ? 'es' : 'en'];
+    const { captions = base.captions, headers = base.headers, yes = base.yes, no = base.no } = text;
     const format = useMemo(() => formatters(locale), [locale]);
     const statuses = data.statuses ?? [];
     const names = new Map(data.projects.map((p) => [p.id, p.name]));

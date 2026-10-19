@@ -1,4 +1,4 @@
-import { formatters } from './labels.js';
+import { formatters, isSpanish } from './labels.js';
 import { scaleOf } from './model.js';
 import { personColor, projectColor, statusColor } from './shapes.js';
 import { resolveTheme } from './theme.js';
@@ -137,12 +137,28 @@ const personPlan = (graph: Graph, node: PersonNode, options: InfoOptions, labels
     return { id: node.id, kind: 'person', title: node.data.name, image: node.data.avatar, color: personColor(node, theme), blocks };
 };
 
-export const infoLabels = (labels?: Partial<InfoLabels>): InfoLabels => ({ ...DEFAULT_INFO_LABELS, ...labels });
+export const SPANISH_INFO_LABELS: InfoLabels = {
+    progress: 'Avance',
+    people: 'Personas',
+    work: 'Trabajo',
+    projects: 'Proyectos',
+    metric: 'Métrica',
+    active: 'Activa',
+    inactive: 'Inactiva',
+    statuses: 'Estados',
+    top: 'Quienes más aportan',
+    close: 'Cerrar',
+};
+
+export const infoLabels = (labels?: Partial<InfoLabels>, locale?: string): InfoLabels => ({
+    ...(isSpanish(locale) ? SPANISH_INFO_LABELS : DEFAULT_INFO_LABELS),
+    ...labels,
+});
 
 export const infoPlan = (graph: Graph, id: string, options: InfoOptions = {}): InfoPlan | null => {
     const node = graph.byId.get(id);
     if (!node) return null;
-    const labels = infoLabels(options.labels);
+    const labels = infoLabels(options.labels, options.locale);
     return node.kind === 'project' ? projectPlan(graph, node, options, labels) : personPlan(graph, node, options, labels);
 };
 

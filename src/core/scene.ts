@@ -1,5 +1,5 @@
 import { focusOf } from './focus.js';
-import { DEFAULT_LABELS, formatters } from './labels.js';
+import { formatters, labelsFor } from './labels.js';
 import type { Formatters, Labels } from './labels.js';
 import { scaleOf } from './model.js';
 import { personShapes, projectColor, projectShapes, pulseColor, pulseRadius, statusColor } from './shapes.js';
@@ -101,7 +101,7 @@ export const sceneNode = (
 export const buildScene = (graph: Graph, options: SceneOptions = {}): Scene => {
     const theme = resolveTheme(options.theme);
     const format = formatters(options.locale);
-    const labels: Labels = { ...DEFAULT_LABELS, ...options.labels };
+    const labels: Labels = { ...labelsFor(options.locale), ...options.labels };
     const order = (n: GraphNode): number => (n.kind === 'project' ? 0 : 1);
     const nodes = [...graph.nodes].sort((a, b) => order(a) - order(b));
     const focus = focusOf(graph, options.focus);

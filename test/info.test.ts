@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraph, infoPlacement, infoPlan, safeHref, settle } from '@npmegar/tequio';
+import { buildGraph, infoPlacement, infoPlan, safeHref, settle, toSvg } from '@npmegar/tequio';
 import type { GraphData, InfoBlock } from '@npmegar/tequio';
 import { nextOf } from '@npmegar/tequio/react';
 import { demoData } from '../demo/data.js';
@@ -85,5 +85,17 @@ describe('nextOf', () => {
         expect(nextOf(order, new Map(), 'c')).toBe('d');
         expect(nextOf(order, new Map(), 'd')).toBe('a');
         expect(nextOf([], new Map(), null)).toBeNull();
+    });
+});
+
+describe('locale', () => {
+    it('speaks Spanish when the locale is Spanish', () => {
+        const graph = buildGraph(data);
+        const plan = infoPlan(graph, 'p:a', { locale: 'es-MX' });
+        expect(ofType(plan?.blocks ?? [], 'cards')[0]?.items.map((i) => i.label)).toEqual(['Avance', 'Personas', 'Trabajo']);
+        expect(ofType(plan?.blocks ?? [], 'list').map((b) => b.title)).toContain('Quienes más aportan');
+        expect(toSvg(data, { locale: 'es' })).toContain('Grafo de participación: 1 proyecto y 2 personas');
+        expect(toSvg(data, { locale: 'es', labels: { title: () => 'Propio' } })).toContain('>Propio</title>');
+        expect(toSvg(data, { locale: 'en-GB' })).toContain('Participation graph');
     });
 });

@@ -118,7 +118,7 @@ export const Tequio = ({
                     theme={scene.theme}
                     scale={scale}
                     register={register}
-                    closeLabel={infoLabels(infoText).close}
+                    closeLabel={infoLabels(infoText, locale).close}
                     onClose={touring.manual ? () => select(null) : undefined}
                 >
                     {renderInfo?.(plan)}

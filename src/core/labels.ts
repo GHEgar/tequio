@@ -40,3 +40,25 @@ export const DEFAULT_LABELS: Labels = {
         return `${node.data.name}${metric}${node.data.active === false ? ' (inactive)' : ''}`;
     },
 };
+
+export const SPANISH_LABELS: Labels = {
+    title: (graph) => {
+        const projects = graph.nodes.filter((n) => n.kind === 'project').length;
+        const people = graph.nodes.length - projects;
+        return `Grafo de participación: ${plural(projects, 'proyecto', 'proyectos')} y ${plural(people, 'persona', 'personas')}`;
+    },
+    project: (node, format, statuses) => {
+        const counts = statuses
+            .filter((s) => (node.data.counts?.[s.key] ?? 0) > 0)
+            .map((s) => `${format.metric(node.data.counts?.[s.key] ?? 0)} ${s.label.toLowerCase()}`);
+        return [`${node.data.name}: ${format.percent(node.data.progress)} de avance`, ...counts].join(', ');
+    },
+    person: (node, format) => {
+        const metric = node.data.metric === undefined ? '' : `: ${format.metric(node.data.metric)}`;
+        return `${node.data.name}${metric}${node.data.active === false ? ' (inactiva)' : ''}`;
+    },
+};
+
+export const isSpanish = (locale: string | undefined): boolean => !!locale && /^es\b/iu.test(locale);
+
+export const labelsFor = (locale: string | undefined): Labels => (isSpanish(locale) ? SPANISH_LABELS : DEFAULT_LABELS);
