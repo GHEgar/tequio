@@ -3,6 +3,7 @@ import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import type { InfoPlan, Placement, Theme } from '../core/index.js';
 import type { Register } from './animation.js';
 import { InfoCard } from './InfoCard.js';
+import { clampOffset, useCardDrag } from './useCardDrag.js';
 import { HANDOFF_MS, useAutoScroll, useHandoff, useOverflow } from './useCardMotion.js';
 import type { Box } from './useCardMotion.js';
 
@@ -23,6 +24,8 @@ export interface InfoBoxProps {
     still?: boolean | undefined;
     onExtend?: ((ms: number) => void) | undefined;
     onBox?: ((id: string, box: Box) => void) | undefined;
+    bounds?: { width: number; height: number } | undefined;
+    onDragStart?: (() => void) | undefined;
     children?: ReactNode;
 }
 
@@ -89,11 +92,12 @@ const ARROW = {
 const JUSTIFY = { above: 'flex-end', below: 'flex-start', right: 'center', left: 'center' } as const;
 
 export const InfoBox = ({
-    plan, origin, ring, placement: p, theme, scale: u, register, closeLabel, onClose, countdown, from, still = false, onExtend, onBox, children,
+    plan, origin, ring, placement: p, theme, scale: u, register, closeLabel, onClose, countdown, from, still = false, onExtend, onBox, bounds, onDragStart, children,
 }: InfoBoxProps): ReactElement => {
     const section = useRef<HTMLElement>(null);
     const [desde] = useState(() => (from ? { x: from.x - origin.x, y: from.y - origin.y, width: from.width, height: from.height } : null));
     const content = useRef<HTMLDivElement>(null);
+    const closable = !!onClose;
     const [actual, setActual] = useState<Box | null>(null);
     useLayoutEffect(() => {
         const el = content.current;
@@ -101,11 +105,15 @@ export const InfoBox = ({
         const h = Math.min(p.height, el.offsetHeight + (countdown?.style === 'bar' ? 56 : 38) * u);
         const y = p.side === 'above' ? p.y + p.height - h : p.side === 'below' ? p.y : p.y + (p.height - h) / 2;
         setActual({ x: p.x, y, width: p.width, height: h });
-    }, [p.x, p.y, p.width, p.height, p.side, u, countdown?.style]);
-    useEffect(() => {
-        if (actual && onBox) onBox(plan.id, { ...actual, x: actual.x + origin.x, y: actual.y + origin.y });
-    }, [actual, onBox, plan.id, origin.x, origin.y]);
+    }, [p.x, p.y, p.width, p.height, p.side, u, countdown?.style, closable]);
     const { box, progress } = useHandoff(actual ?? { x: p.x, y: p.y, width: p.width, height: p.height }, desde, still);
+    const drag = useCardDrag(!!bounds && progress >= 1, (o) => (bounds ? clampOffset(o, box, origin, bounds) : o), onDragStart);
+    const { offset } = drag;
+    useEffect(() => {
+        if (actual && onBox) onBox(plan.id, { ...actual, x: actual.x + origin.x + offset.x, y: actual.y + origin.y + offset.y });
+    }, [actual, onBox, plan.id, origin.x, origin.y, offset.x, offset.y]);
+    const moved = offset.x !== 0 || offset.y !== 0;
+    const at = { x: box.x + offset.x, y: box.y + offset.y };
     const auto = !!countdown;
     const extra = useOverflow(section, auto && progress >= 1, countdown?.duration ?? 0);
     const total = (countdown?.duration ?? 0) + extra + (desde && !still ? HANDOFF_MS : 0);
@@ -121,14 +129,20 @@ export const InfoBox = ({
         overflow: 'auto', scrollbarWidth: auto ? 'none' : 'thin', padding: 18 * u, borderRadius: 14 * u, border: `${u}px solid ${theme.track}`,
         background: theme.surface, color: theme.text, fontFamily: theme.font, fontSize: 17 * u, textAlign: 'start',
         boxShadow: `0 ${8 * u}px ${28 * u}px rgba(0, 0, 0, 0.35)`, pointerEvents: 'auto',
+        cursor: bounds ? (drag.dragging ? 'grabbing' : 'grab') : undefined, userSelect: drag.dragging ? 'none' : undefined,
     };
+    const near = { x: Math.min(Math.max(0, at.x), at.x + box.width), y: Math.min(Math.max(0, at.y), at.y + box.height) };
+    const reach = Math.hypot(near.x, near.y);
     return (
         <g ref={register({ kind: 'node', id: plan.id })} transform={`translate(${origin.x.toFixed(1)} ${origin.y.toFixed(1)})`} data-infobox={plan.id}>
             <circle r={ring} fill="none" stroke={theme.text} strokeWidth={3 * u} strokeDasharray={`${6 * u} ${6 * u}`} opacity={llegada} />
-            <foreignObject x={box.x} y={box.y} width={box.width} height={box.height} style={{ overflow: 'visible', pointerEvents: 'none' }}>
+            {moved && reach > ring && (
+                <line x1={(near.x / reach) * ring} y1={(near.y / reach) * ring} x2={near.x} y2={near.y} stroke={theme.muted} strokeWidth={2 * u} strokeDasharray={`${4 * u} ${4 * u}`} data-tether="" />
+            )}
+            <foreignObject x={at.x} y={at.y} width={box.width} height={box.height} style={{ overflow: 'visible', pointerEvents: 'none' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: progress < 1 ? 'stretch' : JUSTIFY[p.side], width: '100%', height: '100%' }}>
                     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '100%', minHeight: 0, flex: progress < 1 ? 1 : undefined }}>
-                        <section ref={section} role="dialog" aria-label={plan.title} style={card}>
+                        <section ref={section} role="dialog" aria-label={plan.title} style={card} onPointerDown={drag.onPointerDown} onDoubleClick={drag.onDoubleClick} data-dragging={drag.dragging ? '' : undefined}>
                             <div ref={content} style={{ display: 'flex', flexDirection: 'column', gap: 14 * u, opacity: llegada, flex: 'none' }}>
                                 {children ?? <InfoCard plan={plan} theme={theme} scale={u} closeLabel={closeLabel} onClose={onClose} />}
                             </div>
@@ -138,7 +152,7 @@ export const InfoBox = ({
                     </div>
                 </div>
             </foreignObject>
-            <path d={ARROW[p.side](p, 12 * u)} fill={theme.surface} stroke={theme.track} strokeWidth={u} opacity={llegada} />
+            {!moved && <path d={ARROW[p.side](p, 12 * u)} fill={theme.surface} stroke={theme.track} strokeWidth={u} opacity={llegada} />}
         </g>
     );
 };

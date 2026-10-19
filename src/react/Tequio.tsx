@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode, SVGProps } from 'react';
+import type { KeyboardEvent, MouseEvent, PointerEvent, ReactElement, ReactNode, SVGProps } from 'react';
 import { focusOf, infoLabels, infoPlacement, infoPlan, scaleOf } from '../core/index.js';
 import type { GraphData, GraphNode, InfoLabels, InfoPlan } from '../core/index.js';
 import { InfoBox } from './InfoBox.js';
@@ -26,6 +26,7 @@ export interface TequioProps extends Omit<UseTequioOptions, 'focus'>, Omit<SVGPr
     tour?: boolean | TourOptions | undefined;
     focus?: boolean | undefined;
     infoScale?: number | undefined;
+    draggable?: boolean | undefined;
     onNode?: ((node: GraphNode, event: NodeEvent) => void) | undefined;
 }
 
@@ -35,7 +36,7 @@ const hidden = {
 
 export const Tequio = ({
     data, theme, layout, locale, labels, legend, animated, forces, cooling, background = true, table = false,
-    info = true, infoLabels: infoText, renderInfo, tour = false, focus = true, infoScale = 1, onNode, ...rest
+    info = true, infoLabels: infoText, renderInfo, tour = false, focus = true, infoScale = 1, draggable = true, onNode, ...rest
 }: TequioProps): ReactElement | null => {
     const id = useId().replace(/:/g, '');
     const { snapshot, pulses, register, reducedMotion } = useGraph(data, { layout, animated, forces, cooling });
@@ -76,6 +77,10 @@ export const Tequio = ({
     const style = tour === true || tour === false ? undefined : tour.countdown;
 
     const poke = (): void => touring.poke();
+    const onPointerDown = (event: PointerEvent<SVGSVGElement>): void => {
+        if ((event.target as Element).closest('[data-infobox]') && touring.id) select(touring.id);
+        else poke();
+    };
     const onKeyDown = (event: KeyboardEvent<SVGSVGElement>): void => {
         poke();
         if (event.key === 'Escape') select(null);
@@ -96,7 +101,7 @@ export const Tequio = ({
             aria-label={scene.title}
             fontFamily={scene.theme.font}
             textAnchor="middle"
-            onPointerDown={poke}
+            onPointerDown={onPointerDown}
             onWheel={poke}
             onKeyDown={onKeyDown}
             onClick={onClick}
@@ -140,6 +145,8 @@ export const Tequio = ({
                     still={reducedMotion || animated === false}
                     onExtend={extend}
                     onBox={onBox}
+                    bounds={draggable ? { width: scene.width, height: scene.height } : undefined}
+                    onDragStart={() => select(plan.id)}
                 >
                     {renderInfo?.(plan)}
                 </InfoBox>

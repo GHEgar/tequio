@@ -6,6 +6,8 @@ export type { CountdownStyle, InfoBoxProps } from './InfoBox.js';
 export { InfoCard } from './InfoCard.js';
 export type { InfoCardProps } from './InfoCard.js';
 export { ResumeTour } from './ResumeTour.js';
+export { clampOffset, useCardDrag } from './useCardDrag.js';
+export type { CardDrag, Offset } from './useCardDrag.js';
 export { HANDOFF_MS, useAutoScroll, useHandoff, useOverflow } from './useCardMotion.js';
 export type { Box } from './useCardMotion.js';
 export { Legend, ShapeElement } from './Shapes.js';

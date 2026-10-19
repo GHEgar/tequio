@@ -3,6 +3,19 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [0.8.0] - 2026-10-19
+
+### Agregado
+
+- Tarjeta arrastrable: con ratón o lápiz desde cualquier parte y en pantallas táctiles desde el
+  encabezado. No sale del lienzo, una línea punteada la une con su nodo y doble clic la regresa.
+  Arrastrar una tarjeta del recorrido la deja fija. `draggable={false}` lo apaga; `useCardDrag` y
+  `clampOffset` exportados desde `react`.
+
+### Corregido
+
+- La tarjeta vuelve a medirse cuando aparece el botón de cerrar, sin barra de scroll de más.
+
 ## [0.7.0] - 2026-10-19
 
 ### Agregado

@@ -181,6 +181,8 @@ paints the plan with theme tokens, inside the SVG so it scales with the screen a
 | Person | active badge; metric and project count; projects with their weight; `description`; `details` |
 
 The card goes above, below, right or left of the node, whichever fits, and is clamped to the canvas.
+Drag it anywhere (by its header on touch screens): a dashed line keeps it tied to its node, a double
+click puts it back, and `draggable={false}` turns this off.
 Hrefs in `details` pass only for `http(s):`, `mailto:`, `tel:` and relative paths.
 
 **Tour.** With `tour`, a wall display explains itself: after `idle` ms without input it opens a card

@@ -64,7 +64,7 @@ export interface InfoCardProps {
 
 export const InfoCard = ({ plan, theme, scale: u, closeLabel, onClose }: InfoCardProps): ReactElement => (
     <>
-        <header style={{ display: 'flex', alignItems: 'center', gap: 12 * u }}>
+        <header style={{ display: 'flex', alignItems: 'center', gap: 12 * u, touchAction: 'none' }}>
             {plan.image
                 ? <img src={plan.image} alt="" width={44 * u} height={44 * u} style={{ borderRadius: plan.kind === 'person' ? '50%' : 8 * u, objectFit: 'cover', background: theme.background }} />
                 : <Dot color={plan.color} size={20 * u} />}

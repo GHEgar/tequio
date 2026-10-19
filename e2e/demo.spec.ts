@@ -71,3 +71,19 @@ test('the web component page draws the same graph without React in the page', as
     await page.locator('tequio-graph g[data-kind="project"]').first().click({ force: true });
     await expect(page.locator('tequio-graph [role="dialog"]')).toContainText('Progress');
 });
+
+test('drags the card and ties it to its node', async ({ page }) => {
+    await page.locator('g[data-kind="project"]').first().click();
+    const card = page.getByRole('dialog');
+    const before = await card.boundingBox();
+    if (!before) throw new Error('no card');
+    await page.mouse.move(before.x + before.width / 2, before.y + 60);
+    await page.mouse.down();
+    await page.mouse.move(before.x + before.width / 2 + 200, before.y + 160, { steps: 8 });
+    await page.mouse.up();
+    const after = await card.boundingBox();
+    expect(Math.round((after?.x ?? 0) - before.x)).toBeGreaterThan(150);
+    await expect(page.locator('[data-tether]')).toHaveCount(1);
+    await card.dblclick({ position: { x: 40, y: 60 } });
+    await expect.poll(async () => Math.round((await card.boundingBox())?.x ?? 0)).toBe(Math.round(before.x));
+});

@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Tequio, TequioTable } from '@npmegar/tequio/react';
+import { clampOffset, Tequio, TequioTable } from '@npmegar/tequio/react';
 import { demoData } from '../demo/data.js';
 
 afterEach(cleanup);
@@ -160,6 +160,31 @@ describe('card motion', () => {
         } finally {
             vi.useRealTimers();
         }
+    });
+});
+
+describe('drag', () => {
+    it('keeps the card inside the canvas', () => {
+        const box = { x: 20, y: -100, width: 380, height: 200 };
+        const origin = { x: 100, y: 500 };
+        expect(clampOffset({ x: -500, y: 9999 }, box, origin, { width: 1920, height: 1080 })).toEqual({ x: -120, y: 480 });
+        expect(clampOffset({ x: 40, y: -30 }, box, origin, { width: 1920, height: 1080 })).toEqual({ x: 40, y: -30 });
+    });
+
+    it('moves the card, hides the arrow and resets on double click', () => {
+        const { container } = render(<Tequio data={demoData({ projects: 2, people: 4 })} animated={false} />);
+        fireEvent.click(container.querySelector('g[data-kind="project"]') as SVGGElement);
+        const card = container.querySelector('[data-infobox] section') as HTMLElement;
+        const fo = container.querySelector('[data-infobox] foreignObject') as SVGForeignObjectElement;
+        const x = Number(fo.getAttribute('x'));
+        fireEvent.pointerDown(card, { button: 0, clientX: 100, clientY: 100, pointerId: 1 });
+        fireEvent.pointerMove(card, { clientX: 140, clientY: 120, pointerId: 1 });
+        fireEvent.pointerUp(card, { pointerId: 1 });
+        expect(Number(fo.getAttribute('x'))).not.toBe(x);
+        expect(container.querySelector('[data-infobox] > path')).toBeNull();
+        fireEvent.doubleClick(card);
+        expect(Number(fo.getAttribute('x'))).toBe(x);
+        expect(container.querySelector('[data-infobox] > path')).not.toBeNull();
     });
 });
 
