@@ -183,7 +183,9 @@ Hrefs in `details` pass only for `http(s):`, `mailto:`, `tel:` and relative path
 
 **Tour.** With `tour`, a wall display explains itself: after `idle` ms without input it opens a card on
 every data update (or every `interval` ms), starting with the nodes that just changed and otherwise
-going round. Any pointer, wheel or key input stops it until the graph is idle again.
+going round. A bar at the bottom of the card fills up until the next one. A click, wheel or key stops
+it and shows a «Resume tour» button; it also resumes by itself after `idle` ms. The card avoids
+covering the node's neighbors when another position fits.
 
 ```tsx
 <Tequio data={data} tour={{ idle: 8000, interval: 15000 }} infoLabels={{ progress: 'Avance' }} />

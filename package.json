@@ -1,6 +1,6 @@
 {
     "name": "@npmegar/tequio",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Live participation graph: projects at the center, people around, links as thick as the work. TV and print.",
     "keywords": [
         "graph",

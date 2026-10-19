@@ -3,6 +3,21 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [0.6.0] - 2026-10-19
+
+### Agregado
+
+- Barra de tiempo en la tarjeta del recorrido: se llena en lo que tarda la siguiente.
+- Botón «Reanudar recorrido» cuando alguien lo pausa con un clic, la rueda o el teclado; el
+  recorrido también vuelve solo tras `idle` ms. `useTour` expone `paused`, `since`, `interval` y
+  `resume`; etiquetas `resume` y `next` en inglés y español.
+- `infoPlacement` acepta nodos a evitar y prueba varias posiciones por lado: la tarjeta tapa lo menos
+  posible al nodo en foco y a sus vecinos. `<Tequio>` le pasa los vecinos del nodo abierto.
+
+### Cambiado
+
+- Pasar el ratón sobre el grafo ya no pausa el recorrido; lo pausan el clic, la rueda y el teclado.
+
 ## [0.5.0] - 2026-10-19
 
 ### Agregado
@@ -105,6 +120,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 - Demo con 10 proyectos y 150 personas, datos vivos, modo TV y export a SVG y PNG: 60 fps en el build de
   producción a 1920 × 1080.
 
+[0.6.0]: https://github.com/GHEgar/tequio/releases/tag/v0.6.0
 [0.5.0]: https://github.com/GHEgar/tequio/releases/tag/v0.5.0
 [0.4.0]: https://github.com/GHEgar/tequio/releases/tag/v0.4.0
 [0.3.0]: https://github.com/GHEgar/tequio/releases/tag/v0.3.0
