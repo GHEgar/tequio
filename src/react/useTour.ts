@@ -9,6 +9,10 @@ export interface TourOptions {
 export interface Tour {
     id: string | null;
     manual: boolean;
+    paused: boolean;
+    since: number;
+    interval: number;
+    resume: () => void;
     select: (id: string | null) => void;
     toggle: (id: string) => void;
     poke: () => void;
@@ -17,6 +21,8 @@ export interface Tour {
 interface Open {
     id: string | null;
     manual: boolean;
+    paused: boolean;
+    since: number;
 }
 
 const now = (): number => Date.now();
@@ -37,7 +43,7 @@ export const useTour = (
 ): Tour => {
     const idle = options.idle ?? 8000;
     const interval = options.interval ?? 10000;
-    const [open, setOpen] = useState<Open>({ id: null, manual: false });
+    const [open, setOpen] = useState<Open>({ id: null, manual: false, paused: false, since: 0 });
     const lastInput = useRef(now());
     const lastAdvance = useRef(0);
     const latest = useRef({ order, pulses, open });
@@ -48,19 +54,25 @@ export const useTour = (
     const advance = useCallback(() => {
         const { order: list, pulses: changed, open: current } = latest.current;
         lastAdvance.current = now();
-        setOpen({ id: nextOf(list, changed, current.id), manual: false });
+        setOpen({ id: nextOf(list, changed, current.id), manual: false, paused: false, since: lastAdvance.current });
     }, []);
 
     const poke = useCallback(() => {
         lastInput.current = now();
         const current = latest.current.open;
-        if (current.id !== null && !current.manual) setOpen({ id: null, manual: false });
+        if (current.id !== null && !current.manual) setOpen({ id: null, manual: false, paused: true, since: 0 });
+        else if (!current.paused && current.id === null) setOpen({ ...current, paused: true });
     }, []);
 
     const select = useCallback((id: string | null) => {
         lastInput.current = now();
-        setOpen({ id, manual: id !== null });
+        setOpen({ id, manual: id !== null, paused: true, since: 0 });
     }, []);
+
+    const resume = useCallback(() => {
+        lastInput.current = 0;
+        advance();
+    }, [advance]);
 
     const toggle = useCallback((id: string) => {
         select(latest.current.open.id === id ? null : id);
@@ -81,5 +93,5 @@ export const useTour = (
     }, [enabled, idle, interval, advance]);
 
     const visible = open.manual || enabled ? open.id : null;
-    return { id: visible, manual: open.manual, select, toggle, poke };
+    return { id: visible, manual: open.manual, paused: enabled && open.paused, since: open.since, interval, select, toggle, poke, resume };
 };

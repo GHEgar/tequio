@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode, SVGProps } from 'react';
-import { infoLabels, infoPlacement, infoPlan, scaleOf } from '../core/index.js';
+import { focusOf, infoLabels, infoPlacement, infoPlan, scaleOf } from '../core/index.js';
 import type { GraphData, GraphNode, InfoLabels, InfoPlan } from '../core/index.js';
-import { InfoBox } from './InfoBox.js';
+import { InfoBox, ResumeTour } from './InfoBox.js';
 import { Link, Node } from './Nodes.js';
 import type { Handler, NodeEvent } from './Nodes.js';
 import { Legend } from './Shapes.js';
@@ -60,6 +60,8 @@ export const Tequio = ({
     const scale = scaleOf(graph.layout);
     const transition = reducedMotion ? undefined : 'opacity 400ms ease';
     const node = plan ? graph.byId.get(plan.id) : undefined;
+    const text = infoLabels(infoText, locale);
+    const neighbors = node ? [...(focusOf(graph, node.id)?.nodes ?? [])].map((n) => graph.byId.get(n)).filter((n) => n !== undefined) : [];
 
     const poke = (): void => touring.poke();
     const onKeyDown = (event: KeyboardEvent<SVGSVGElement>): void => {
@@ -68,7 +70,7 @@ export const Tequio = ({
     };
     const onClick = (event: MouseEvent<SVGSVGElement>): void => {
         const target = event.target as Element;
-        if (!target.closest('[data-kind],[data-infobox]')) select(null);
+        if (!target.closest('[data-kind],[data-infobox],[data-resume]')) select(null);
     };
 
     const svg = (
@@ -83,7 +85,6 @@ export const Tequio = ({
             fontFamily={scene.theme.font}
             textAnchor="middle"
             onPointerDown={poke}
-            onPointerMove={poke}
             onWheel={poke}
             onKeyDown={onKeyDown}
             onClick={onClick}
@@ -116,16 +117,18 @@ export const Tequio = ({
                     plan={plan}
                     origin={node}
                     ring={node.r + (node.kind === 'project' ? 20 : 9) * scale}
-                    placement={infoPlacement(graph, node, plan)}
+                    placement={infoPlacement(graph, node, plan, 380, neighbors)}
                     theme={scene.theme}
                     scale={scale}
                     register={register}
-                    closeLabel={infoLabels(infoText, locale).close}
+                    closeLabel={text.close}
                     onClose={touring.manual ? () => select(null) : undefined}
+                    countdown={touring.manual || !touring.since ? undefined : { since: touring.since, duration: touring.interval, label: text.next }}
                 >
                     {renderInfo?.(plan)}
                 </InfoBox>
             )}
+            {touring.paused && <ResumeTour width={scene.width} theme={scene.theme} u={scale} label={text.resume} onResume={touring.resume} />}
         </svg>
     );
     if (!table) return svg;

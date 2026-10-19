@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactElement, ReactNode } from 'react';
 import type { InfoBlock, InfoItem, InfoPlan, Placement, Theme } from '../core/index.js';
 import type { Register } from './animation.js';
@@ -12,8 +13,22 @@ export interface InfoBoxProps {
     register: Register;
     closeLabel: string;
     onClose?: (() => void) | undefined;
+    countdown?: { since: number; duration: number; label: string } | undefined;
     children?: ReactNode;
 }
+
+const Countdown = ({ duration, label, theme, u }: { duration: number; label: string; theme: Theme; u: number }): ReactElement => {
+    const [full, setFull] = useState(false);
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => setFull(true));
+        return () => cancelAnimationFrame(frame);
+    }, []);
+    return (
+        <div aria-hidden="true" title={label} data-countdown={duration} style={{ height: 4 * u, borderRadius: 2 * u, background: theme.track, overflow: 'hidden', flex: 'none' }}>
+            <div style={{ height: '100%', width: full ? '100%' : '0%', background: theme.muted, transition: full ? `width ${duration}ms linear` : 'none' }} />
+        </div>
+    );
+};
 
 const Dot = ({ color, size }: { color: string; size: number }): ReactElement => (
     <span aria-hidden="true" style={{ flex: 'none', width: size, height: size, borderRadius: '50%', background: color }} />
@@ -68,7 +83,7 @@ const Block = ({ block, theme, u }: { block: InfoBlock; theme: Theme; u: number 
     );
 };
 
-export const InfoCard = ({ plan, theme, scale: u, closeLabel, onClose }: Omit<InfoBoxProps, 'origin' | 'ring' | 'placement' | 'register'>): ReactElement => (
+export const InfoCard = ({ plan, theme, scale: u, closeLabel, onClose }: Omit<InfoBoxProps, 'origin' | 'ring' | 'placement' | 'register' | 'countdown'>): ReactElement => (
     <>
         <header style={{ display: 'flex', alignItems: 'center', gap: 12 * u }}>
             {plan.image
@@ -85,7 +100,7 @@ export const InfoCard = ({ plan, theme, scale: u, closeLabel, onClose }: Omit<In
     </>
 );
 
-export const InfoBox = ({ plan, origin, ring, placement: p, theme, scale: u, register, closeLabel, onClose, children }: InfoBoxProps): ReactElement => {
+export const InfoBox = ({ plan, origin, ring, placement: p, theme, scale: u, register, closeLabel, onClose, countdown, children }: InfoBoxProps): ReactElement => {
     const card: CSSProperties = {
         boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 14 * u, width: '100%', maxHeight: '100%', overflow: 'auto',
         padding: 18 * u, borderRadius: 14 * u, border: `${u}px solid ${theme.track}`, background: theme.surface, color: theme.text,
@@ -106,10 +121,34 @@ export const InfoBox = ({ plan, origin, ring, placement: p, theme, scale: u, reg
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: justify, width: '100%', height: '100%' }}>
                     <section role="dialog" aria-label={plan.title} style={card}>
                         {children ?? <InfoCard plan={plan} theme={theme} scale={u} closeLabel={closeLabel} onClose={onClose} />}
+                        {countdown && <Countdown key={countdown.since} duration={countdown.duration} label={countdown.label} theme={theme} u={u} />}
                     </section>
                 </div>
             </foreignObject>
             <path d={arrow} fill={theme.surface} stroke={theme.track} strokeWidth={u} />
         </g>
+    );
+};
+
+export const ResumeTour = ({ width, theme, u, label, onResume }: { width: number; theme: Theme; u: number; label: string; onResume: () => void }): ReactElement => {
+    const w = 300 * u;
+    const h = 52 * u;
+    return (
+        <foreignObject x={width - w - 24 * u} y={24 * u} width={w} height={h} style={{ overflow: 'visible' }} data-resume="">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '100%' }}>
+                <button
+                    type="button"
+                    onClick={onResume}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 10 * u, height: h, padding: `0 ${20 * u}px`, borderRadius: h / 2,
+                        border: `${u}px solid ${theme.track}`, background: theme.surface, color: theme.text, fontFamily: theme.font,
+                        fontSize: 18 * u, fontWeight: 700, cursor: 'pointer', boxShadow: `0 ${4 * u}px ${16 * u}px rgba(0, 0, 0, 0.25)`,
+                    }}
+                >
+                    <svg aria-hidden="true" width={16 * u} height={16 * u} viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor" /></svg>
+                    {label}
+                </button>
+            </div>
+        </foreignObject>
     );
 };

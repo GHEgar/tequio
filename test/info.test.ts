@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraph, infoPlacement, infoPlan, safeHref, settle, toSvg } from '@npmegar/tequio';
+import { buildGraph, focusOf, infoPlacement, infoPlan, safeHref, settle, toSvg } from '@npmegar/tequio';
 import type { GraphData, InfoBlock } from '@npmegar/tequio';
 import { nextOf } from '@npmegar/tequio/react';
 import { demoData } from '../demo/data.js';
@@ -97,5 +97,33 @@ describe('locale', () => {
         expect(toSvg(data, { locale: 'es' })).toContain('Grafo de participación: 1 proyecto y 2 personas');
         expect(toSvg(data, { locale: 'es', labels: { title: () => 'Propio' } })).toContain('>Propio</title>');
         expect(toSvg(data, { locale: 'en-GB' })).toContain('Participation graph');
+    });
+});
+
+describe('infoPlacement avoiding nodes', () => {
+    const overlap = (p: { x: number; y: number; width: number; height: number }, at: { x: number; y: number }, nodes: { x: number; y: number; r: number }[]): number => nodes.reduce((sum, n) => {
+        const left = at.x + p.x;
+        const top = at.y + p.y;
+        const w = Math.min(left + p.width, n.x + n.r) - Math.max(left, n.x - n.r);
+        const h = Math.min(top + p.height, n.y + n.r) - Math.max(top, n.y - n.r);
+        return w > 0 && h > 0 ? sum + w * h : sum;
+    }, 0);
+
+    it('covers fewer focused neighbors than ignoring them', () => {
+        const graph = settle(buildGraph(demoData()), 300);
+        let before = 0;
+        let after = 0;
+        for (const node of graph.nodes) {
+            const plan = infoPlan(graph, node.id);
+            const focus = focusOf(graph, node.id);
+            if (!plan || !focus) continue;
+            const neighbors = graph.nodes.filter((n) => focus.nodes.has(n.id) && n !== node);
+            const plain = overlap(infoPlacement(graph, node, plan), node, neighbors);
+            const avoided = overlap(infoPlacement(graph, node, plan, 380, neighbors), node, neighbors);
+            expect(avoided).toBeLessThanOrEqual(plain + 0.001);
+            before += plain;
+            after += avoided;
+        }
+        expect(after).toBeLessThan(before);
     });
 });

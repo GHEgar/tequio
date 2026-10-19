@@ -87,7 +87,7 @@ describe('info box', () => {
     it('tours the nodes when nobody interacts and stops on input', () => {
         vi.useFakeTimers();
         try {
-            const { container, queryByRole } = render(
+            const { container, queryByRole, getByRole } = render(
                 <Tequio data={demoData({ projects: 2, people: 4 })} animated={false} tour={{ idle: 1000, interval: 500 }} />,
             );
             expect(queryByRole('dialog')).toBeNull();
@@ -100,9 +100,16 @@ describe('info box', () => {
                 vi.advanceTimersByTime(600);
             });
             expect(queryByRole('dialog')?.getAttribute('aria-label')).not.toBe(first);
-            fireEvent.pointerMove(container.querySelector('svg') as SVGSVGElement);
+            const svg = container.querySelector('svg') as SVGSVGElement;
+            fireEvent.pointerMove(svg);
+            expect(queryByRole('dialog')).not.toBeNull();
+            expect(container.querySelector('[data-countdown="500"]')).not.toBeNull();
+            fireEvent.pointerDown(svg);
             expect(queryByRole('dialog')).toBeNull();
             expect(queryByRole('button', { name: 'Close' })).toBeNull();
+            fireEvent.click(getByRole('button', { name: 'Resume tour' }));
+            expect(queryByRole('dialog')).not.toBeNull();
+            expect(queryByRole('button', { name: 'Resume tour' })).toBeNull();
         } finally {
             vi.useRealTimers();
         }

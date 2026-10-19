@@ -1,5 +1,4 @@
 import { formatters, isSpanish } from './labels.js';
-import { scaleOf } from './model.js';
 import { personColor, projectColor, statusColor } from './shapes.js';
 import { resolveTheme } from './theme.js';
 import type { ThemeInput } from './theme.js';
@@ -38,6 +37,8 @@ export interface InfoLabels {
     statuses: string;
     top: string;
     close: string;
+    resume: string;
+    next: string;
 }
 
 export interface InfoOptions {
@@ -58,6 +59,8 @@ export const DEFAULT_INFO_LABELS: InfoLabels = {
     statuses: 'Statuses',
     top: 'Top contributors',
     close: 'Close',
+    resume: 'Resume tour',
+    next: 'Time until the next card',
 };
 
 const SAFE = /^(https?:|mailto:|tel:|\/(?!\/))/i;
@@ -148,6 +151,8 @@ export const SPANISH_INFO_LABELS: InfoLabels = {
     statuses: 'Estados',
     top: 'Quienes más aportan',
     close: 'Cerrar',
+    resume: 'Reanudar recorrido',
+    next: 'Tiempo para la siguiente tarjeta',
 };
 
 export const infoLabels = (labels?: Partial<InfoLabels>, locale?: string): InfoLabels => ({
@@ -169,43 +174,3 @@ export const estimateHeight = (plan: InfoPlan): number => plan.blocks.reduce((h,
     if (block.type === 'text') return h + BLOCK_HEIGHT.text * Math.ceil(block.text.length / 60);
     return h + BLOCK_HEIGHT[block.type];
 }, BLOCK_HEIGHT.header + 24);
-
-export type Side = 'above' | 'below' | 'right' | 'left';
-
-export interface Placement {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    side: Side;
-    arrow: number;
-}
-
-const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(min, max), Math.max(min, value));
-
-export const infoPlacement = (graph: Graph, node: GraphNode, plan: InfoPlan, width = 380): Placement => {
-    const s = scaleOf(graph.layout);
-    const { width: W, height: H } = graph.layout;
-    const w = width * s;
-    const h = Math.min(estimateHeight(plan) * s, H - 24 * s);
-    const gap = node.r + (node.kind === 'project' ? 26 : 14) * s;
-    const m = 12 * s;
-    const room: Record<Side, number> = {
-        above: node.y - gap - m,
-        below: H - node.y - gap - m,
-        right: W - node.x - gap - m,
-        left: node.x - gap - m,
-    };
-    const need: Record<Side, number> = { above: h, below: h, right: w, left: w };
-    const order: Side[] = ['above', 'below', 'right', 'left'];
-    const side = order.find((o) => room[o] >= need[o]) ?? order.reduce((a, b) => (room[b] - need[b] > room[a] - need[a] ? b : a));
-    if (side === 'above' || side === 'below') {
-        const left = clamp(node.x - w / 2, m, W - w - m);
-        const top = side === 'above' ? Math.max(m, node.y - gap - h) : Math.min(node.y + gap, H - h - m);
-        const height = side === 'above' ? node.y - gap - top : h;
-        return { x: left - node.x, y: top - node.y, width: w, height, side, arrow: clamp(node.x - left, 24 * s, w - 24 * s) };
-    }
-    const top = clamp(node.y - h / 2, m, H - h - m);
-    const left = side === 'right' ? node.x + gap : node.x - gap - w;
-    return { x: left - node.x, y: top - node.y, width: w, height: h, side, arrow: clamp(node.y - top, 24 * s, h - 24 * s) };
-};
