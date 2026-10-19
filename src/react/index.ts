@@ -1,0 +1,10 @@
+export * from '../core/index.js';
+export { PULSE_MS, PULSE_REPEAT, useAnimation, useReducedMotion } from './animation.js';
+export type { AnimationOptions, Register, Tracked } from './animation.js';
+export { Legend, ShapeElement } from './Shapes.js';
+export { Tequio } from './Tequio.js';
+export type { NodeEvent, TequioProps } from './Tequio.js';
+export { TequioTable } from './TequioTable.js';
+export type { TequioTableProps } from './TequioTable.js';
+export { useTequio } from './useTequio.js';
+export type { UseTequio, UseTequioOptions } from './useTequio.js';
