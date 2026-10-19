@@ -4,6 +4,7 @@ import type { Pulse } from '../core/index.js';
 export interface TourOptions {
     idle?: number | undefined;
     interval?: number | undefined;
+    countdown?: 'outline' | 'bar' | 'none' | undefined;
 }
 
 export interface Tour {
@@ -16,6 +17,7 @@ export interface Tour {
     select: (id: string | null) => void;
     toggle: (id: string) => void;
     poke: () => void;
+    extend: (ms: number) => void;
 }
 
 interface Open {
@@ -46,6 +48,7 @@ export const useTour = (
     const [open, setOpen] = useState<Open>({ id: null, manual: false, paused: false, since: 0 });
     const lastInput = useRef(now());
     const lastAdvance = useRef(0);
+    const extra = useRef(0);
     const latest = useRef({ order, pulses, open });
     useEffect(() => {
         latest.current = { order, pulses, open };
@@ -54,6 +57,7 @@ export const useTour = (
     const advance = useCallback(() => {
         const { order: list, pulses: changed, open: current } = latest.current;
         lastAdvance.current = now();
+        extra.current = 0;
         setOpen({ id: nextOf(list, changed, current.id), manual: false, paused: false, since: lastAdvance.current });
     }, []);
 
@@ -74,24 +78,31 @@ export const useTour = (
         advance();
     }, [advance]);
 
+    const extend = useCallback((ms: number) => {
+        extra.current = Math.max(0, ms);
+    }, []);
+
+    const due = useCallback(
+        () => latest.current.open.id === null || now() - lastAdvance.current >= interval + extra.current,
+        [interval],
+    );
+
     const toggle = useCallback((id: string) => {
         select(latest.current.open.id === id ? null : id);
     }, [select]);
 
     useEffect(() => {
-        if (enabled && now() - lastInput.current >= idle) advance();
-    }, [enabled, idle, version, advance]);
+        if (enabled && now() - lastInput.current >= idle && due()) advance();
+    }, [enabled, idle, version, advance, due]);
 
     useEffect(() => {
         if (!enabled) return undefined;
         const timer = setInterval(() => {
-            const quiet = now() - lastInput.current >= idle;
-            const due = latest.current.open.id === null || now() - lastAdvance.current >= interval;
-            if (quiet && due) advance();
+            if (now() - lastInput.current >= idle && due()) advance();
         }, 250);
         return () => clearInterval(timer);
-    }, [enabled, idle, interval, advance]);
+    }, [enabled, idle, advance, due]);
 
     const visible = open.manual || enabled ? open.id : null;
-    return { id: visible, manual: open.manual, paused: enabled && open.paused, since: open.since, interval, select, toggle, poke, resume };
+    return { id: visible, manual: open.manual, paused: enabled && open.paused, since: open.since, interval, select, toggle, poke, resume, extend };
 };

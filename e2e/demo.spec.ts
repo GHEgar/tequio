@@ -28,8 +28,8 @@ test('tours the nodes when left alone', async ({ page }) => {
     await page.mouse.move(2, 2);
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
     const first = await page.getByRole('dialog').getAttribute('aria-label');
-    await page.getByRole('button', { name: 'Next update' }).click();
-    await expect.poll(() => page.getByRole('dialog').getAttribute('aria-label')).not.toBe(first);
+    await expect(page.locator('svg[data-countdown]')).toBeVisible();
+    await expect.poll(() => page.getByRole('dialog').getAttribute('aria-label'), { timeout: 20000 }).not.toBe(first);
 });
 
 test('keeps moving between updates without jumping', async ({ page }) => {

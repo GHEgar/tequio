@@ -74,10 +74,10 @@ const fallback = (node: GraphNode, graph: Graph, w: number, h: number, gap: numb
     return { left: side === 'right' ? node.x + gap : node.x - gap - w, top: clamp(node.y - h / 2, m, H - h - m), width: w, height: h, side };
 };
 
-export const infoPlacement = (graph: Graph, node: GraphNode, plan: InfoPlan, width = 380, avoid: GraphNode[] = []): Placement => {
+export const infoPlacement = (graph: Graph, node: GraphNode, plan: InfoPlan, width = 380, avoid: GraphNode[] = [], zoom = 1): Placement => {
     const s = scaleOf(graph.layout);
-    const w = width * s;
-    const h = Math.min(estimateHeight(plan) * s, graph.layout.height - 24 * s);
+    const w = Math.min(width * s * zoom, graph.layout.width - 24 * s);
+    const h = Math.min(estimateHeight(plan) * s * zoom, graph.layout.height - 24 * s);
     const gap = node.r + (node.kind === 'project' ? 26 : 14) * s;
     const m = 12 * s;
     const others = avoid.filter((n) => n !== node);

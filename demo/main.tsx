@@ -85,7 +85,7 @@ function App() {
                 </div>
             </header>
             <div ref={stage} className={`stage ${tv ? 'tv' : ''}`} data-testid="stage">
-                <Tequio data={data} theme={theme} table tour={{ idle: 5000, interval: 15000 }} onNode={(node) => setSelected(node.data.name)} />
+                <Tequio data={data} theme={theme} table tour={{ idle: 5000, interval: tv ? 20000 : 15000 }} infoScale={tv ? 1.25 : 1} onNode={(node) => setSelected(node.data.name)} />
             </div>
             <footer className="status">
                 <span>{`Update #${tick}`}</span>

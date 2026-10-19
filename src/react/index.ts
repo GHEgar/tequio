@@ -1,8 +1,13 @@
 export * from '../core/index.js';
 export { PULSE_MS, PULSE_REPEAT, useAnimation, useReducedMotion } from './animation.js';
 export type { AnimationOptions, Register, Tracked } from './animation.js';
-export { InfoBox, InfoCard } from './InfoBox.js';
-export type { InfoBoxProps } from './InfoBox.js';
+export { InfoBox } from './InfoBox.js';
+export type { CountdownStyle, InfoBoxProps } from './InfoBox.js';
+export { InfoCard } from './InfoCard.js';
+export type { InfoCardProps } from './InfoCard.js';
+export { ResumeTour } from './ResumeTour.js';
+export { HANDOFF_MS, useAutoScroll, useHandoff, useOverflow } from './useCardMotion.js';
+export type { Box } from './useCardMotion.js';
 export { Legend, ShapeElement } from './Shapes.js';
 export { Tequio } from './Tequio.js';
 export type { NodeEvent, TequioProps } from './Tequio.js';

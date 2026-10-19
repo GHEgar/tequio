@@ -101,15 +101,62 @@ describe('info box', () => {
             });
             expect(queryByRole('dialog')?.getAttribute('aria-label')).not.toBe(first);
             const svg = container.querySelector('svg') as SVGSVGElement;
+            act(() => {
+                vi.advanceTimersByTime(500);
+            });
             fireEvent.pointerMove(svg);
             expect(queryByRole('dialog')).not.toBeNull();
-            expect(container.querySelector('[data-countdown="500"]')).not.toBeNull();
+            expect(container.querySelector('[data-countdown]')).not.toBeNull();
             fireEvent.pointerDown(svg);
             expect(queryByRole('dialog')).toBeNull();
             expect(queryByRole('button', { name: 'Close' })).toBeNull();
             fireEvent.click(getByRole('button', { name: 'Resume tour' }));
             expect(queryByRole('dialog')).not.toBeNull();
             expect(queryByRole('button', { name: 'Resume tour' })).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});
+
+describe('card motion', () => {
+    it('hands the card over from the previous one and traces the outline countdown', () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = render(
+                <Tequio data={demoData({ projects: 2, people: 4 })} animated="always" tour={{ idle: 1000, interval: 2000 }} />,
+            );
+            act(() => {
+                vi.advanceTimersByTime(1300);
+            });
+            expect(container.querySelector('svg[data-countdown] rect')).not.toBeNull();
+            act(() => {
+                vi.advanceTimersByTime(2000);
+            });
+            const travelling = container.querySelector('[data-infobox] foreignObject');
+            const start = travelling?.getAttribute('x');
+            expect(container.querySelector('[data-countdown]')).toBeNull();
+            act(() => {
+                vi.advanceTimersByTime(600);
+            });
+            expect(container.querySelector('[data-infobox] foreignObject')?.getAttribute('x')).not.toBe(start);
+            expect(container.querySelector('svg[data-countdown]')).not.toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('uses a bar when asked', () => {
+        vi.useFakeTimers();
+        try {
+            const { container } = render(
+                <Tequio data={demoData({ projects: 2, people: 4 })} animated={false} tour={{ idle: 1000, interval: 2000, countdown: 'bar' }} />,
+            );
+            act(() => {
+                vi.advanceTimersByTime(1300);
+            });
+            expect(container.querySelector('div[data-countdown]')).not.toBeNull();
+            expect(container.querySelector('svg[data-countdown]')).toBeNull();
         } finally {
             vi.useRealTimers();
         }

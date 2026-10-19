@@ -10,7 +10,7 @@ import type { Source } from './source.js';
 export { load, startSource } from './source.js';
 export type { Source, SourceOptions } from './source.js';
 
-export const ATTRIBUTES = ['src', 'refresh', 'token', 'theme', 'tour', 'locale', 'info', 'focus', 'legend', 'width', 'height', 'table', 'animated'] as const;
+export const ATTRIBUTES = ['src', 'refresh', 'token', 'theme', 'tour', 'locale', 'info', 'focus', 'legend', 'width', 'height', 'table', 'animated', 'info-scale', 'countdown'] as const;
 
 const STYLE = `:host{display:block;position:relative;width:100%;height:100%}
 .tequio{width:100%;height:100%}
@@ -26,11 +26,17 @@ export interface NodeDetail {
 
 const flag = (value: string | null, fallback: boolean): boolean => (value === null ? fallback : value !== 'false');
 
-export const tourOf = (value: string | null): boolean | TourOptions => {
+const COUNTDOWNS = ['outline', 'bar', 'none'] as const;
+
+export const tourOf = (value: string | null, countdown: string | null = null): boolean | TourOptions => {
     if (value === null || value === 'false') return false;
     const [idle, interval] = value.split(',').map((v) => Number(v.trim()));
-    if (!idle) return true;
-    return interval ? { idle, interval } : { idle };
+    const style = COUNTDOWNS.find((c) => c === countdown);
+    const options: TourOptions = {};
+    if (idle) options.idle = idle;
+    if (idle && interval) options.interval = interval;
+    if (style) options.countdown = style;
+    return Object.keys(options).length ? options : true;
 };
 
 const number = (value: string | null): number | undefined => {
@@ -46,7 +52,8 @@ export const propsOf = (el: HTMLElement): Omit<TequioProps, 'data'> => {
     if (height) layout.height = height;
     return {
         theme: el.getAttribute('theme') === 'light' ? 'light' : 'dark',
-        tour: tourOf(el.getAttribute('tour')),
+        tour: tourOf(el.getAttribute('tour'), el.getAttribute('countdown')),
+        infoScale: number(el.getAttribute('info-scale')),
         locale: el.getAttribute('locale') ?? undefined,
         info: flag(el.getAttribute('info'), true),
         focus: flag(el.getAttribute('focus'), true),

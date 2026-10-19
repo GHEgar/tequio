@@ -19,11 +19,14 @@ describe('attributes', () => {
         expect(tourOf(null)).toBe(false);
         expect(tourOf('')).toBe(true);
         expect(tourOf('5000,15000')).toEqual({ idle: 5000, interval: 15000 });
+        expect(tourOf('5000,15000', 'bar')).toEqual({ idle: 5000, interval: 15000, countdown: 'bar' });
+        expect(tourOf('', 'nope')).toBe(true);
         const el = document.createElement('div');
         el.setAttribute('theme', 'light');
         el.setAttribute('info', 'false');
         el.setAttribute('width', '1280');
-        expect(propsOf(el)).toMatchObject({ theme: 'light', info: false, focus: true, legend: true, layout: { width: 1280 } });
+        el.setAttribute('info-scale', '1.25');
+        expect(propsOf(el)).toMatchObject({ theme: 'light', info: false, focus: true, legend: true, infoScale: 1.25, layout: { width: 1280 } });
     });
 });
 

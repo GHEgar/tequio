@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode, SVGProps } from 'react';
 import { focusOf, infoLabels, infoPlacement, infoPlan, scaleOf } from '../core/index.js';
 import type { GraphData, GraphNode, InfoLabels, InfoPlan } from '../core/index.js';
-import { InfoBox, ResumeTour } from './InfoBox.js';
+import { InfoBox } from './InfoBox.js';
+import { ResumeTour } from './ResumeTour.js';
+import type { Box } from './useCardMotion.js';
 import { Link, Node } from './Nodes.js';
 import type { Handler, NodeEvent } from './Nodes.js';
 import { Legend } from './Shapes.js';
@@ -23,6 +25,7 @@ export interface TequioProps extends Omit<UseTequioOptions, 'focus'>, Omit<SVGPr
     renderInfo?: ((plan: InfoPlan) => ReactNode) | undefined;
     tour?: boolean | TourOptions | undefined;
     focus?: boolean | undefined;
+    infoScale?: number | undefined;
     onNode?: ((node: GraphNode, event: NodeEvent) => void) | undefined;
 }
 
@@ -32,7 +35,7 @@ const hidden = {
 
 export const Tequio = ({
     data, theme, layout, locale, labels, legend, animated, forces, cooling, background = true, table = false,
-    info = true, infoLabels: infoText, renderInfo, tour = false, focus = true, onNode, ...rest
+    info = true, infoLabels: infoText, renderInfo, tour = false, focus = true, infoScale = 1, onNode, ...rest
 }: TequioProps): ReactElement | null => {
     const id = useId().replace(/:/g, '');
     const { snapshot, pulses, register, reducedMotion } = useGraph(data, { layout, animated, forces, cooling });
@@ -43,7 +46,11 @@ export const Tequio = ({
     const { graph } = snapshot;
     const order = useMemo(() => graph?.nodes.map((n) => n.id) ?? [], [graph]);
     const touring = useTour(info && tour !== false, tour === true || tour === false ? {} : tour, snapshot.version, order, pulses);
-    const { select, toggle } = touring;
+    const { select, toggle, extend } = touring;
+    const [hand, setHand] = useState<{ id: string | null; box: Box | null; from: Box | null }>({ id: null, box: null, from: null });
+    const onBox = useCallback((at: string, box: Box) => {
+        setHand((h) => (h.id === at ? { ...h, box } : h));
+    }, []);
     const handle = useCallback<Handler>((node, event) => {
         if (info) toggle(node.id);
         latest.current?.(node, event);
@@ -62,6 +69,11 @@ export const Tequio = ({
     const node = plan ? graph.byId.get(plan.id) : undefined;
     const text = infoLabels(infoText, locale);
     const neighbors = node ? [...(focusOf(graph, node.id)?.nodes ?? [])].map((n) => graph.byId.get(n)).filter((n) => n !== undefined) : [];
+    const placement = plan && node ? infoPlacement(graph, node, plan, 380, neighbors, infoScale) : null;
+    const current = plan?.id ?? null;
+    if (hand.id !== current) setHand({ id: current, box: null, from: hand.box });
+    const from = hand.id === current ? hand.from : hand.box;
+    const style = tour === true || tour === false ? undefined : tour.countdown;
 
     const poke = (): void => touring.poke();
     const onKeyDown = (event: KeyboardEvent<SVGSVGElement>): void => {
@@ -111,19 +123,23 @@ export const Tequio = ({
                 />
             ))}
             <Legend scene={scene} />
-            {plan && node && (
+            {plan && node && placement && (
                 <InfoBox
                     key={plan.id}
                     plan={plan}
                     origin={node}
                     ring={node.r + (node.kind === 'project' ? 20 : 9) * scale}
-                    placement={infoPlacement(graph, node, plan, 380, neighbors)}
+                    placement={placement}
                     theme={scene.theme}
-                    scale={scale}
+                    scale={scale * infoScale}
                     register={register}
                     closeLabel={text.close}
                     onClose={touring.manual ? () => select(null) : undefined}
-                    countdown={touring.manual || !touring.since ? undefined : { since: touring.since, duration: touring.interval, label: text.next }}
+                    countdown={touring.manual || !touring.since ? undefined : { since: touring.since, duration: touring.interval, label: text.next, style }}
+                    from={from}
+                    still={reducedMotion || animated === false}
+                    onExtend={extend}
+                    onBox={onBox}
                 >
                     {renderInfo?.(plan)}
                 </InfoBox>

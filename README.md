@@ -124,6 +124,8 @@ For a wall screen or any page without React, one script and one tag are enough:
 | `token` | — | sent as `Authorization: Bearer`; use a read-only token and serve the page privately |
 | `theme`, `locale` | `dark`, `en` | `locale` also picks built-in Spanish text (`es`) |
 | `tour` | off | present, or `idle,interval` in ms |
+| `countdown` | `outline` | how the card shows the time left: `outline`, `bar` or `none` |
+| `info-scale` | 1 | card size; `1.25` reads better from across the room |
 | `info`, `focus`, `legend`, `table` | on | `"false"` turns them off |
 | `animated` | on | `"false"` draws once; `"always"` keeps moving even with reduced motion, for a wall screen |
 | `width`, `height` | 1920, 1080 | canvas units |
@@ -181,14 +183,16 @@ paints the plan with theme tokens, inside the SVG so it scales with the screen a
 The card goes above, below, right or left of the node, whichever fits, and is clamped to the canvas.
 Hrefs in `details` pass only for `http(s):`, `mailto:`, `tel:` and relative paths.
 
-**Tour.** With `tour`, a wall display explains itself: after `idle` ms without input it opens a card on
-every data update (or every `interval` ms), starting with the nodes that just changed and otherwise
-going round. A bar at the bottom of the card fills up until the next one. A click, wheel or key stops
-it and shows a «Resume tour» button; it also resumes by itself after `idle` ms. The card avoids
-covering the node's neighbors when another position fits.
+**Tour.** With `tour`, a wall display explains itself: after `idle` ms without input it opens a card
+every `interval` ms, going first to the nodes that just changed and otherwise round. The card's outline
+traces itself until the next one (`countdown: 'bar'` fills a bar instead, `'none'` hides it), then the
+card travels to the next node. A card taller than its room scrolls slowly on its own and stays longer,
+in proportion to what it hides. A click, wheel or key stops it and shows a «Resume tour» button; it
+also resumes by itself after `idle` ms. The card avoids covering the node's neighbors when another
+position fits. `infoScale` enlarges the card for a TV.
 
 ```tsx
-<Tequio data={data} tour={{ idle: 8000, interval: 15000 }} infoLabels={{ progress: 'Avance' }} />
+<Tequio data={data} tour={{ idle: 8000, interval: 20000 }} infoScale={1.25} infoLabels={{ progress: 'Avance' }} />
 ```
 
 ## Core
@@ -199,7 +203,7 @@ covering the node's neighbors when another position fits.
 | `remember(graph, memory)` · `changes(graph, memory)` | Keep positions; list the nodes to pulse |
 | `step` · `settle` · `cool` | One tick, many ticks, alpha decay |
 | `createStore({ layout, forces })` | `update(data)`, `subscribe`, `getSnapshot`, `clearPulses` |
-| `infoPlan(graph, id)` · `infoPlacement(graph, node, plan)` | What the info box says, and where it goes |
+| `infoPlan(graph, id)` · `infoPlacement(graph, node, plan, width, avoid, zoom)` | What the info box says, and where it goes |
 | `focusOf(graph, id)` · `linkEnds(link, scale)` | Neighbors to keep in focus; link ends on the outer edge of each node |
 | `buildScene(graph, options)` | Shapes per node, links, legend and labels: what any renderer draws |
 | `sceneToSvg(scene)` | Serialize a scene |

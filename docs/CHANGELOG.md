@@ -3,6 +3,24 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [0.7.0] - 2026-10-19
+
+### Agregado
+
+- Traspaso entre tarjetas del recorrido: la tarjeta viaja con su tamaño real desde el nodo anterior
+  hasta el siguiente y el contenido nuevo aparece al llegar.
+- Cuenta regresiva en el contorno de la tarjeta, que se traza hasta la siguiente. `tour.countdown`
+  elige `outline` (por omisión), `bar` o `none`; atributo `countdown` en `<tequio-graph>`.
+- Scroll automático y continuo de la tarjeta que no cabe: espera arriba, baja parejo y se queda al
+  final. El recorrido alarga esa tarjeta en proporción a lo que oculta. `useTour` expone `extend`.
+- `infoScale` en `<Tequio>` y atributo `info-scale`: tarjeta más grande para una pantalla de TV.
+  `infoPlacement` recibe `zoom`.
+- `InfoCard`, `ResumeTour`, `useHandoff`, `useOverflow` y `useAutoScroll` exportados desde `react`.
+
+### Cambiado
+
+- Una actualización de datos ya no adelanta la tarjeta antes de que se cumpla su tiempo.
+
 ## [0.6.0] - 2026-10-19
 
 ### Agregado

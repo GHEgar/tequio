@@ -100,6 +100,20 @@ describe('locale', () => {
     });
 });
 
+describe('infoPlacement zoom', () => {
+    it('grows the box with the zoom and keeps it inside the canvas', () => {
+        const graph = settle(buildGraph(demoData({ projects: 4, people: 30 })), 200);
+        const node = graph.nodes[0];
+        const plan = node ? infoPlan(graph, node.id) : null;
+        if (!node || !plan) throw new Error('no node');
+        const base = infoPlacement(graph, node, plan);
+        const big = infoPlacement(graph, node, plan, 380, [], 1.25);
+        expect(big.width).toBeCloseTo(base.width * 1.25, 5);
+        expect(node.x + big.x).toBeGreaterThanOrEqual(0);
+        expect(node.x + big.x + big.width).toBeLessThanOrEqual(graph.layout.width);
+    });
+});
+
 describe('infoPlacement avoiding nodes', () => {
     const overlap = (p: { x: number; y: number; width: number; height: number }, at: { x: number; y: number }, nodes: { x: number; y: number; r: number }[]): number => nodes.reduce((sum, n) => {
         const left = at.x + p.x;
