@@ -65,11 +65,11 @@ describe('createStore', () => {
         const stop = store.subscribe(() => {
             calls += 1;
         });
-        store.update(demoData({ tick: 0 }));
+        store.update(demoData({ projects: 10, people: 150, tick: 0 }));
         const first = store.getSnapshot();
         expect(first.graph?.nodes.length).toBe(160);
         expect(first.pulses.size).toBe(0);
-        store.update(demoData({ tick: 1 }));
+        store.update(demoData({ projects: 10, people: 150, tick: 1 }));
         const second = store.getSnapshot();
         expect(second.version).toBe(2);
         expect(second.pulses.size).toBeGreaterThan(0);
@@ -78,7 +78,7 @@ describe('createStore', () => {
         store.clearPulses();
         expect(store.getSnapshot().pulses.size).toBe(0);
         stop();
-        store.update(demoData({ tick: 2 }));
+        store.update(demoData({ projects: 10, people: 150, tick: 2 }));
         expect(calls).toBe(3);
     });
 

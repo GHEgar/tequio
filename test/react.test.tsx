@@ -8,7 +8,7 @@ afterEach(cleanup);
 describe('<Tequio>', () => {
     it('renders an accessible image with one group per node and a link per pair', () => {
         const data = demoData({ projects: 3, people: 12 });
-        const { container } = render(<Tequio data={data} animated={false} />);
+        const { container } = render(<Tequio data={data} animated={false} info={false} />);
         const svg = container.querySelector('svg');
         expect(svg?.getAttribute('role')).toBe('img');
         expect(svg?.getAttribute('aria-label')).toBe('Participation graph: 3 projects and 12 people');
@@ -55,5 +55,56 @@ describe('<TequioTable>', () => {
         expect(people?.querySelectorAll('tbody tr')).toHaveLength(3);
         expect(getByText('Blocked')).toBeTruthy();
         expect(people?.textContent).toContain(data.projects[0]?.name ?? '');
+    });
+});
+
+describe('info box', () => {
+    it('opens on click, toggles on a second click and closes with Escape or the close button', () => {
+        const data = demoData({ projects: 2, people: 4 });
+        const { container, queryByRole, getByRole } = render(<Tequio data={data} animated={false} />);
+        const project = container.querySelector('g[data-kind="project"]') as SVGGElement;
+        fireEvent.click(project);
+        expect(getByRole('dialog').getAttribute('aria-label')).toBe(data.projects[0]?.name);
+        expect(getByRole('dialog').textContent).toContain('Progress');
+        fireEvent.click(project);
+        expect(queryByRole('dialog')).toBeNull();
+        fireEvent.keyDown(project, { key: 'Enter' });
+        fireEvent.keyDown(container.querySelector('svg') as SVGSVGElement, { key: 'Escape' });
+        expect(queryByRole('dialog')).toBeNull();
+        fireEvent.click(project);
+        fireEvent.click(getByRole('button', { name: 'Close' }));
+        expect(queryByRole('dialog')).toBeNull();
+    });
+
+    it('lets the consumer paint the card', () => {
+        const { container, getByText } = render(
+            <Tequio data={demoData({ projects: 2, people: 4 })} animated={false} renderInfo={(plan) => <p>{`custom ${plan.kind}`}</p>} />,
+        );
+        fireEvent.click(container.querySelector('g[data-kind="person"]') as SVGGElement);
+        expect(getByText('custom person')).toBeTruthy();
+    });
+
+    it('tours the nodes when nobody interacts and stops on input', () => {
+        vi.useFakeTimers();
+        try {
+            const { container, queryByRole } = render(
+                <Tequio data={demoData({ projects: 2, people: 4 })} animated={false} tour={{ idle: 1000, interval: 500 }} />,
+            );
+            expect(queryByRole('dialog')).toBeNull();
+            act(() => {
+                vi.advanceTimersByTime(1300);
+            });
+            const first = queryByRole('dialog')?.getAttribute('aria-label');
+            expect(first).toBeTruthy();
+            act(() => {
+                vi.advanceTimersByTime(600);
+            });
+            expect(queryByRole('dialog')?.getAttribute('aria-label')).not.toBe(first);
+            fireEvent.pointerMove(container.querySelector('svg') as SVGSVGElement);
+            expect(queryByRole('dialog')).toBeNull();
+            expect(queryByRole('button', { name: 'Close' })).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });
