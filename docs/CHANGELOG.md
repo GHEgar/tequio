@@ -3,6 +3,18 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
+## [No publicado]
+
+### Cambiado
+
+- El nodo de proyecto ya no muestra el porcentaje de avance: solo el logo o la inicial, más grandes, y
+  el anillo de estados. El avance queda en la tarjeta del infobox.
+- `tour.interval` pasa de 6 s a 10 s por omisión.
+- El demo actualiza los datos cada 15 s en lugar de cada 3 s, y el recorrido cambia de tarjeta al mismo
+  ritmo.
+- El demo ya no ofrece 150 personas en el selector: queda con 5 proyectos y 40 personas, y el tamaño de
+  prueba de carga solo se pide por URL (`?projects=10&people=150`).
+
 ## [0.2.0] - 2026-10-19
 
 ### Agregado

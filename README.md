@@ -56,7 +56,7 @@ The SVG scales to its container through `viewBox`; give the container a size, su
 
 | Field | Drawn as |
 |---|---|
-| `project.progress` (0–1) | percentage inside the project |
+| `project.progress` (0–1) | only in the info box, as a percentage |
 | `project.counts` | segmented ring around the project, in `statuses` order |
 | `project.logo` | image inside the project; without it, the initial |
 | `project.color` | identity ring and link color (default: theme palette by order) |
@@ -125,7 +125,7 @@ every data update (or every `interval` ms), starting with the nodes that just ch
 going round. Any pointer, wheel or key input stops it until the graph is idle again.
 
 ```tsx
-<Tequio data={data} tour={{ idle: 8000, interval: 6000 }} infoLabels={{ progress: 'Avance' }} />
+<Tequio data={data} tour={{ idle: 8000, interval: 15000 }} infoLabels={{ progress: 'Avance' }} />
 ```
 
 ## Core
@@ -179,9 +179,9 @@ npm run demo
 npm run e2e
 ```
 
-The demo shows five projects and forty people whose data changes every three seconds, touring its
-nodes when left alone, with a TV mode (full screen), both themes, SVG/PNG export and a 150-people
-stress size. Its production build holds 60 fps at 1920 × 1080 with 150 people and the tour running.
+The demo shows five projects and forty people whose data changes every fifteen seconds, touring its
+nodes when left alone, with a TV mode (full screen), both themes and SVG/PNG export.
+`?projects=10&people=150` loads a stress size. Its production build holds 60 fps at 1920 × 1080 with 150 people and the tour running.
 
 ## Contributing
 
