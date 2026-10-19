@@ -23,6 +23,7 @@ describe('toSvg', () => {
         const data = demoData({ projects: 3, people: 12 });
         const texts = [...toSvg(data).matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
         for (const p of [...data.projects, ...data.people]) expect(texts).not.toContain(p.name);
+        expect(texts.filter((t) => t?.includes('%'))).toEqual([]);
     });
 
     it('draws a one-line legend with the statuses', () => {

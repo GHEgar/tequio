@@ -78,7 +78,7 @@ export const sceneNode = (node: GraphNode, graph: Graph, theme: Theme, format: F
         return withFingerprint({
             id: node.id, kind: node.kind, node, opacity: 1,
             label: labels.project(node, format, graph.statuses),
-            shapes: projectShapes(node, graph, theme, format),
+            shapes: projectShapes(node, graph, theme),
             pulse: { r: pulseRadius(node, graph), color: pulseColor(node, theme) },
         });
     }

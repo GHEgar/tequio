@@ -73,20 +73,19 @@ const statusRing = (node: ProjectNode, statuses: Status[], theme: Theme, s: numb
     return [track, ...arcs];
 };
 
-export const projectShapes = (node: ProjectNode, graph: Graph, theme: Theme, format: Formatters): Shape[] => {
+export const projectShapes = (node: ProjectNode, graph: Graph, theme: Theme): Shape[] => {
     const s = scaleOf(graph.layout);
     const { r } = node;
     const emblem: Shape = node.data.logo
-        ? { type: 'image', href: node.data.logo, size: r * 0.8, y: -r * 0.2, round: false }
+        ? { type: 'image', href: node.data.logo, size: r * 1.05, y: 0, round: false }
         : {
-            type: 'text', y: -r * 0.2 + r * 0.22, text: node.data.name.trim().slice(0, 1).toUpperCase(),
-            size: r * 0.62, weight: 700, fill: theme.text,
+            type: 'text', y: r * 0.3, text: node.data.name.trim().slice(0, 1).toUpperCase(),
+            size: r * 0.86, weight: 700, fill: theme.text,
         };
     return [
         ...statusRing(node, graph.statuses, theme, s),
         { type: 'circle', r, fill: theme.surface, stroke: projectColor(node, theme), strokeWidth: 5 * s },
         emblem,
-        { type: 'text', y: r * 0.62, text: format.percent(node.data.progress), size: r * 0.34, weight: 700, fill: theme.text },
     ];
 };
 
