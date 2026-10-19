@@ -3,13 +3,35 @@ import { expect, test } from './fixtures';
 test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Pause updates' }).click();
+    await expect(page.locator('g[data-kind="person"]')).toHaveCount(40);
+});
+
+test('draws 5 projects and 40 people, and 150 on demand', async ({ page }) => {
+    await expect(page.locator('g[data-kind="project"]')).toHaveCount(5);
+    await expect(page.locator('svg[role="group"]')).toHaveAttribute('aria-label', 'Participation graph: 5 projects and 40 people');
+    await expect(page.getByRole('table')).toHaveCount(2);
+    await page.getByRole('combobox', { name: 'Size' }).selectOption('stress');
     await expect(page.locator('g[data-kind="person"]')).toHaveCount(150);
 });
 
-test('draws 10 projects and 150 people as an accessible image', async ({ page }) => {
-    await expect(page.locator('g[data-kind="project"]')).toHaveCount(10);
-    await expect(page.locator('svg[role="group"]')).toHaveAttribute('aria-label', 'Participation graph: 10 projects and 150 people');
-    await expect(page.getByRole('table')).toHaveCount(2);
+test('opens the info box on click and closes it with Escape', async ({ page }) => {
+    await page.locator('g[data-kind="project"]').first().click({ force: true });
+    const box = page.getByRole('dialog');
+    await expect(box).toBeVisible();
+    await expect(box).toContainText('Progress');
+    await expect(box).toContainText('Top contributors');
+    await page.keyboard.press('Escape');
+    await expect(box).toHaveCount(0);
+});
+
+test('tours the nodes when left alone', async ({ page }) => {
+    await page.mouse.move(2, 2);
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
+    const first = await page.getByRole('dialog').getAttribute('aria-label');
+    await page.getByRole('button', { name: 'Next update' }).focus();
+    await page.waitForTimeout(100);
+    await page.mouse.move(2, 2);
+    await expect.poll(() => page.getByRole('dialog').getAttribute('aria-label'), { timeout: 8000 }).not.toBe(first);
 });
 
 test('keeps moving between updates without jumping', async ({ page }) => {

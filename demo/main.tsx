@@ -9,8 +9,8 @@ import { demoData } from './data';
 import { useFps } from './useFps';
 
 const SIZES = {
-    tv: { label: '10 projects · 150 people', projects: 10, people: 150 },
     team: { label: '5 projects · 40 people', projects: 5, people: 40 },
+    stress: { label: '10 projects · 150 people', projects: 10, people: 150 },
 } as const;
 
 type Size = keyof typeof SIZES;
@@ -36,7 +36,7 @@ const exportAs = async (format: 'svg' | 'png', data: GraphData, theme: ThemeOver
 };
 
 function App() {
-    const [size, setSize] = useState<Size>('tv');
+    const [size, setSize] = useState<Size>('team');
     const [mode, setMode] = useState<Mode>('dark');
     const [tick, setTick] = useState(0);
     const [playing, setPlaying] = useState(true);
@@ -89,12 +89,12 @@ function App() {
                 </div>
             </header>
             <div ref={stage} className={`stage ${tv ? 'tv' : ''}`} data-testid="stage">
-                <Tequio data={data} theme={theme} table onNode={(node) => setSelected(node.data.name)} />
+                <Tequio data={data} theme={theme} table tour={{ idle: 5000, interval: 3000 }} onNode={(node) => setSelected(node.data.name)} />
             </div>
             <footer className="status">
                 <span>{`Update #${tick}`}</span>
                 <span data-testid="fps">{`${fps} fps`}</span>
-                <span aria-live="polite">{selected ? `Selected: ${selected}` : 'Click a node to select it'}</span>
+                <span aria-live="polite">{selected ? `Selected: ${selected}` : 'Click a node for details. Left alone, the graph tours its nodes.'}</span>
             </footer>
         </main>
     );

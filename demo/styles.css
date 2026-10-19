@@ -98,3 +98,7 @@ g[role='button']:focus-visible {
     opacity: 0.8;
     font-variant-numeric: tabular-nums;
 }
+
+g[role='button']:focus:not(:focus-visible) {
+    outline: none;
+}
