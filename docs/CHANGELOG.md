@@ -3,7 +3,7 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versionado con
 [SemVer](https://semver.org/lang/es/).
 
-## [No publicado]
+## [0.4.0] - 2026-10-19
 
 ### Agregado
 
@@ -92,6 +92,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 - Demo con 10 proyectos y 150 personas, datos vivos, modo TV y export a SVG y PNG: 60 fps en el build de
   producción a 1920 × 1080.
 
+[0.4.0]: https://github.com/GHEgar/tequio/releases/tag/v0.4.0
 [0.3.0]: https://github.com/GHEgar/tequio/releases/tag/v0.3.0
 [0.2.0]: https://github.com/GHEgar/tequio/releases/tag/v0.2.0
 [0.1.0]: https://github.com/GHEgar/tequio/releases/tag/v0.1.0
