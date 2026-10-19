@@ -63,3 +63,11 @@ test('exports SVG and PNG', async ({ page }) => {
     const [png] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export PNG' }).click()]);
     expect(png.suggestedFilename()).toBe('tequio.png');
 });
+
+test('the web component page draws the same graph without React in the page', async ({ page }) => {
+    await page.goto('/tv.html');
+    await expect(page.locator('tequio-graph g[data-kind="person"]')).toHaveCount(40);
+    await expect(page.locator('tequio-graph svg[role="group"]')).toHaveAttribute('aria-label', 'Participation graph: 5 projects and 40 people');
+    await page.locator('tequio-graph g[data-kind="project"]').first().click({ force: true });
+    await expect(page.locator('tequio-graph [role="dialog"]')).toContainText('Progress');
+});

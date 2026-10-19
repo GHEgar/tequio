@@ -18,5 +18,11 @@ export default defineConfig({
     build: {
         outDir: fileURLToPath(new URL('../demo-dist', import.meta.url)),
         emptyOutDir: true,
+        rolldownOptions: {
+            input: {
+                main: fileURLToPath(new URL('./index.html', import.meta.url)),
+                tv: fileURLToPath(new URL('./tv.html', import.meta.url)),
+            },
+        },
     },
 });

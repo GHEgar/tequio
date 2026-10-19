@@ -56,7 +56,8 @@ h1 code {
 }
 
 button,
-select {
+select,
+.button {
     padding: 6px 12px;
     border: 1px solid var(--line);
     border-radius: 6px;
@@ -64,6 +65,7 @@ select {
     color: inherit;
     font: inherit;
     cursor: pointer;
+    text-decoration: none;
 }
 
 button:focus-visible,

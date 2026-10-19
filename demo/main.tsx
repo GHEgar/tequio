@@ -79,6 +79,7 @@ function App() {
                         {mode === 'dark' ? 'Light theme' : 'Dark theme'}
                     </button>
                     <button type="button" onClick={toggleTv}>TV mode</button>
+                    <a className="button" href="./tv.html">Web component page</a>
                     <button type="button" onClick={() => void exportAs('svg', data, theme)}>Export SVG</button>
                     <button type="button" onClick={() => void exportAs('png', data, theme)}>Export PNG</button>
                 </div>
