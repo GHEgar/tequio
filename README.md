@@ -125,6 +125,7 @@ For a wall screen or any page without React, one script and one tag are enough:
 | `theme`, `locale` | `dark`, `en` | `locale` also picks built-in Spanish text (`es`) |
 | `tour` | off | present, or `idle,interval` in ms |
 | `info`, `focus`, `legend`, `table` | on | `"false"` turns them off |
+| `animated` | on | `"false"` draws once; `"always"` keeps moving even with reduced motion, for a wall screen |
 | `width`, `height` | 1920, 1080 | canvas units |
 
 Set `element.data = graph` instead of `src` to feed it yourself. It emits `tequio-load`, `tequio-error`
@@ -210,7 +211,7 @@ going round. Any pointer, wheel or key input stops it until the graph is idle ag
 | Prop | Default | |
 |---|---|---|
 | `theme` | `'dark'` | name or overrides |
-| `animated` | `true` | `false` draws once; `prefers-reduced-motion` turns motion and pulses off |
+| `animated` | `true` | `false` draws once; `prefers-reduced-motion` turns motion and pulses off, unless `'always'` |
 | `info` | `true` | clicking a node opens its info box; nodes become focusable buttons (Enter and Space) |
 | `tour` | `false` | `true` or `{ idle, interval }`: open cards by themselves while nobody interacts |
 | `focus` | `true` | while a card is open, dim everything but the node, its direct neighbors and their links |
