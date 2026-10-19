@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { DEFAULT_COOLING, DEFAULT_FORCES, cool, step } from '../core/index.js';
-import type { Cooling, Forces, Graph, GraphLink, GraphNode } from '../core/index.js';
+import type { Cooling, Forces, Graph, GraphLink } from '../core/index.js';
 
 export const PULSE_MS = 1600;
 export const PULSE_REPEAT = 3;
 
 export type Tracked =
-    | { kind: 'node'; node: GraphNode }
-    | { kind: 'link'; link: GraphLink }
+    | { kind: 'node'; id: string }
+    | { kind: 'link'; id: string }
     | { kind: 'pulse'; key: string; r: number; spread: number };
 
 export type Register = (tracked: Tracked) => (el: Element | null) => (() => void) | undefined;
@@ -27,22 +27,30 @@ export const useReducedMotion = (): boolean => useSyncExternalStore(subscribeMot
 
 const fixed = (n: number): string => n.toFixed(1);
 
-const draw = (tracked: Map<Element, Tracked>, starts: Map<string, number>, now: number): void => {
+interface Frame {
+    graph: Graph;
+    links: Map<string, GraphLink>;
+    starts: Map<string, number>;
+}
+
+const draw = (tracked: Map<Element, Tracked>, frame: Frame, now: number): void => {
     for (const [el, t] of tracked) {
         if (t.kind === 'node') {
-            el.setAttribute('transform', `translate(${fixed(t.node.x)} ${fixed(t.node.y)})`);
+            const node = frame.graph.byId.get(t.id);
+            if (node) el.setAttribute('transform', `translate(${fixed(node.x)} ${fixed(node.y)})`);
         } else if (t.kind === 'link') {
-            el.setAttribute('x1', fixed(t.link.source.x));
-            el.setAttribute('y1', fixed(t.link.source.y));
-            el.setAttribute('x2', fixed(t.link.target.x));
-            el.setAttribute('y2', fixed(t.link.target.y));
+            const link = frame.links.get(t.id);
+            if (!link) continue;
+            el.setAttribute('x1', fixed(link.source.x));
+            el.setAttribute('y1', fixed(link.source.y));
+            el.setAttribute('x2', fixed(link.target.x));
+            el.setAttribute('y2', fixed(link.target.y));
         } else {
-            if (!starts.has(t.key)) starts.set(t.key, now);
-            const elapsed = now - (starts.get(t.key) ?? now);
-            const done = elapsed >= PULSE_MS * PULSE_REPEAT;
+            if (!frame.starts.has(t.key)) frame.starts.set(t.key, now);
+            const elapsed = now - (frame.starts.get(t.key) ?? now);
             const phase = (elapsed % PULSE_MS) / PULSE_MS;
             el.setAttribute('r', fixed(t.r + t.spread * phase));
-            el.setAttribute('opacity', done ? '0' : (0.9 * (1 - phase)).toFixed(3));
+            el.setAttribute('opacity', elapsed >= PULSE_MS * PULSE_REPEAT ? '0' : (0.9 * (1 - phase)).toFixed(3));
         }
     }
 };
@@ -52,6 +60,8 @@ export interface AnimationOptions {
     forces?: Forces | undefined;
     cooling?: Cooling | undefined;
 }
+
+const clock = (): number => (typeof performance === 'undefined' ? Date.now() : performance.now());
 
 export const useAnimation = (graph: Graph | null, options: AnimationOptions): Register => {
     const tracked = useRef(new Map<Element, Tracked>());
@@ -72,27 +82,27 @@ export const useAnimation = (graph: Graph | null, options: AnimationOptions): Re
     const { running } = options;
     useEffect(() => {
         if (!graph) return undefined;
-        const now = (): number => (typeof performance === 'undefined' ? Date.now() : performance.now());
-        const old = now() - PULSE_MS * PULSE_REPEAT * 2;
+        const old = clock() - PULSE_MS * PULSE_REPEAT * 2;
         for (const [key, start] of starts.current) if (start < old) starts.current.delete(key);
-        draw(tracked.current, starts.current, now());
+        const frame: Frame = { graph, links: new Map(graph.links.map((l) => [l.id, l])), starts: starts.current };
+        draw(tracked.current, frame, clock());
         if (!running) return undefined;
         let alpha = 0.3;
-        let frame = 0;
+        let request = 0;
         const tick = (time: number): void => {
             step(graph, alpha, settings.current.forces ?? DEFAULT_FORCES);
             alpha = cool(alpha, settings.current.cooling ?? DEFAULT_COOLING);
-            draw(tracked.current, starts.current, time);
-            frame = requestAnimationFrame(tick);
+            draw(tracked.current, frame, time);
+            request = requestAnimationFrame(tick);
         };
         const visibility = (): void => {
-            cancelAnimationFrame(frame);
-            if (!document.hidden) frame = requestAnimationFrame(tick);
+            cancelAnimationFrame(request);
+            if (!document.hidden) request = requestAnimationFrame(tick);
         };
-        frame = requestAnimationFrame(tick);
+        request = requestAnimationFrame(tick);
         document.addEventListener('visibilitychange', visibility);
         return () => {
-            cancelAnimationFrame(frame);
+            cancelAnimationFrame(request);
             document.removeEventListener('visibilitychange', visibility);
         };
     }, [graph, running]);

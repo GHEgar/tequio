@@ -22,6 +22,7 @@ export interface SceneNode {
     opacity: number;
     shapes: Shape[];
     pulse: { r: number; color: string };
+    fingerprint: string;
 }
 
 export interface SceneLink {
@@ -30,6 +31,7 @@ export interface SceneLink {
     color: string;
     width: number;
     opacity: number;
+    fingerprint: string;
 }
 
 export interface LegendItem {
@@ -66,22 +68,27 @@ const legendOf = (graph: Graph, theme: Theme): LegendItem[] => {
     });
 };
 
+const withFingerprint = (item: Omit<SceneNode, 'fingerprint'>): SceneNode => ({
+    ...item,
+    fingerprint: JSON.stringify([item.label, item.opacity, item.pulse, item.shapes]),
+});
+
 export const sceneNode = (node: GraphNode, graph: Graph, theme: Theme, format: Formatters, labels: Labels): SceneNode => {
     if (node.kind === 'project') {
-        return {
+        return withFingerprint({
             id: node.id, kind: node.kind, node, opacity: 1,
             label: labels.project(node, format, graph.statuses),
             shapes: projectShapes(node, graph, theme, format),
             pulse: { r: pulseRadius(node, graph), color: pulseColor(node, theme) },
-        };
+        });
     }
-    return {
+    return withFingerprint({
         id: node.id, kind: node.kind, node,
         opacity: node.data.active === false ? theme.inactiveOpacity : 1,
         label: labels.person(node, format),
         shapes: personShapes(node, graph, theme, format),
         pulse: { r: pulseRadius(node, graph), color: pulseColor(node, theme) },
-    };
+    });
 };
 
 export const buildScene = (graph: Graph, options: SceneOptions = {}): Scene => {
@@ -95,10 +102,11 @@ export const buildScene = (graph: Graph, options: SceneOptions = {}): Scene => {
         height: graph.layout.height,
         title: labels.title(graph),
         theme,
-        links: graph.links.map((link) => ({
-            id: link.id, link, width: link.width, opacity: theme.linkOpacity * (link.source.data.active === false ? 0.6 : 1),
-            color: projectColor(link.target, theme),
-        })),
+        links: graph.links.map((link) => {
+            const color = projectColor(link.target, theme);
+            const opacity = theme.linkOpacity * (link.source.data.active === false ? 0.6 : 1);
+            return { id: link.id, link, width: link.width, opacity, color, fingerprint: `${color}|${link.width}|${opacity}` };
+        }),
         nodes: nodes.map((node) => sceneNode(node, graph, theme, format, labels)),
         legend: options.legend === false ? [] : legendOf(graph, theme),
     };
