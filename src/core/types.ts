@@ -7,9 +7,17 @@ export interface Status {
     color?: string | undefined;
 }
 
+export interface Detail {
+    label: string;
+    value: string | number;
+    href?: string | undefined;
+}
+
 export interface Project {
     id: string;
     name: string;
+    description?: string | undefined;
+    details?: Detail[] | undefined;
     logo?: string | undefined;
     color?: string | undefined;
     progress: number;
@@ -19,6 +27,8 @@ export interface Project {
 export interface Person {
     id: string;
     name: string;
+    description?: string | undefined;
+    details?: Detail[] | undefined;
     avatar?: string | undefined;
     color?: string | undefined;
     metric?: number | undefined;

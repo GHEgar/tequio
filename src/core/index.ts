@@ -1,4 +1,6 @@
 export { hash } from './hash.js';
+export { DEFAULT_INFO_LABELS, estimateHeight, infoLabels, infoPlacement, infoPlan, safeHref } from './info.js';
+export type { InfoBlock, InfoItem, InfoLabels, InfoOptions, InfoPlan, Placement } from './info.js';
 export { DEFAULT_LABELS, formatters } from './labels.js';
 export type { Formatters, Labels } from './labels.js';
 export { DEFAULT_LAYOUT, areaOf, buildGraph, changes, personKey, projectKey, remember, scaleOf } from './model.js';
