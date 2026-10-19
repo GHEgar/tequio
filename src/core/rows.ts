@@ -1,4 +1,4 @@
-import type { GraphData, Link, Person, Project, Status } from './types.js';
+import type { GraphData, Link, Person, Project, Status, Tone } from './types.js';
 
 export type Row = Record<string, unknown>;
 
@@ -28,6 +28,19 @@ const amount = (value: unknown): number => {
     if (value === undefined || value === null || value === '') return 1;
     const n = typeof value === 'number' ? value : Number(String(value).replace(',', '.'));
     return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
+const TONE_WORDS: [Tone, RegExp][] = [
+    ['good', /^(pass(ed)?|ok|done|closed|complete(d)?|resolved|approved|pasa|aprobad[oa]|hech[oa]|cerrad[oa]|resuelt[oa]|list[oa])$/u],
+    ['critical', /^(fail(ed|ure)?|error|bug|rejected|falla|fall[oó]|rechazad[oa])$/u],
+    ['warning', /^(blocked|on.?hold|warning|no.?pude|bloquead[oa]|en.?espera)$/u],
+    ['serious', /^(late|overdue|at.?risk|atrasad[oa]|vencid[oa])$/u],
+    ['neutral', /^(pending|to.?do|open|new|backlog|waiting|pendiente|abiert[oa]|nuev[oa]|por.?hacer|sin.?empezar)$/u],
+];
+
+export const guessTone = (key: string): Tone | undefined => {
+    const word = key.trim().toLowerCase().replace(/[\s_-]+/gu, ' ');
+    return TONE_WORDS.find(([, re]) => re.test(word))?.[0];
 };
 
 const YES = new Set(['true', '1', 'yes', 'y', 'si', 'sí', 'x']);
@@ -75,7 +88,10 @@ export const fromRows = (rows: Row[], mapping: RowMapping): GraphData => {
         if (active !== undefined) who.active = (who.active ?? false) || active;
         if (weight > 0) weights.set(`${person}\u0000${project}`, (weights.get(`${person}\u0000${project}`) ?? 0) + weight);
     }
-    const statuses: Status[] = mapping.statuses ?? seen.map((key) => ({ key, label: key }));
+    const statuses: Status[] = mapping.statuses ?? seen.map((key) => {
+        const tone = guessTone(key);
+        return tone ? { key, label: key, tone } : { key, label: key };
+    });
     const open = new Set(mapping.open ?? statuses.filter((s) => s.tone === 'neutral').map((s) => s.key));
     const projectList: Project[] = [...projects].map(([id, p]) => {
         const total = p.rows.length;

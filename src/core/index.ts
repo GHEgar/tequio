@@ -15,7 +15,7 @@ export { personColor, projectColor, statusColor } from './shapes.js';
 export type { CircleShape, ImageShape, Shape, TextShape } from './shapes.js';
 export { DEFAULT_COOLING, DEFAULT_FORCES, cool, initialSteps, settle, step } from './simulation.js';
 export type { Cooling, Forces } from './simulation.js';
-export { fromRows } from './rows.js';
+export { fromRows, guessTone } from './rows.js';
 export type { Field, Row, RowMapping } from './rows.js';
 export { createStore } from './store.js';
 export type { GraphStore, Snapshot, StoreOptions } from './store.js';

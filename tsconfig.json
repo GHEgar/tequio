@@ -15,7 +15,9 @@
         "isolatedModules": true,
         "verbatimModuleSyntax": true,
         "skipLibCheck": true,
-        "types": [],
+        "types": [
+            "node"
+        ],
         "paths": {
             "@npmegar/tequio/react": [
                 "./src/react/index.ts"

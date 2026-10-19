@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { fromRows, parseCsv, parseCsvRows, toSvg, validate } from '@npmegar/tequio';
+import { fromRows, guessTone, parseCsv, parseCsvRows, toSvg, validate } from '@npmegar/tequio';
 import { demoData } from '../demo/data.js';
 
 describe('validate', () => {
@@ -97,9 +97,23 @@ describe('fromRows', () => {
             person: (r) => String(r.owner).toUpperCase(), project: 'project', status: 'state',
             projectName: (r) => `Project ${String(r.project)}`, progress: (rows) => rows.length / 10,
         });
-        expect(data.statuses?.map((s) => s.key)).toEqual(['pass', 'fail', 'pending']);
+        expect(data.statuses).toEqual([
+            { key: 'pass', label: 'pass', tone: 'good' },
+            { key: 'fail', label: 'fail', tone: 'critical' },
+            { key: 'pending', label: 'pending', tone: 'neutral' },
+        ]);
         expect(data.projects[0]).toMatchObject({ name: 'Project Web', progress: 0.3 });
         expect(data.people.map((p) => p.id)).toEqual(['ANA', 'BEN']);
         expect(toSvg(data)).toContain('<svg');
+    });
+});
+
+describe('guessTone', () => {
+    it('reads common status words in English and Spanish', () => {
+        expect(['Done', 'pasa', 'Aprobado', 'closed'].map(guessTone)).toEqual(['good', 'good', 'good', 'good']);
+        expect(['FAILED', 'falla', 'bug'].map(guessTone)).toEqual(['critical', 'critical', 'critical']);
+        expect(['no_pude', 'Blocked', 'on-hold'].map(guessTone)).toEqual(['warning', 'warning', 'warning']);
+        expect(['To Do', 'pendiente', 'backlog'].map(guessTone)).toEqual(['neutral', 'neutral', 'neutral']);
+        expect(guessTone('in review')).toBeUndefined();
     });
 });
