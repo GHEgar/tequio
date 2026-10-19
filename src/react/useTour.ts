@@ -36,7 +36,7 @@ export const useTour = (
     pulses: ReadonlyMap<string, Pulse>,
 ): Tour => {
     const idle = options.idle ?? 8000;
-    const interval = options.interval ?? 6000;
+    const interval = options.interval ?? 10000;
     const [open, setOpen] = useState<Open>({ id: null, manual: false });
     const lastInput = useRef(now());
     const lastAdvance = useRef(0);

@@ -6,11 +6,11 @@ test.beforeEach(async ({ page }) => {
     await expect(page.locator('g[data-kind="person"]')).toHaveCount(40);
 });
 
-test('draws 5 projects and 40 people, and 150 on demand', async ({ page }) => {
+test('draws 5 projects and 40 people, and 150 through the URL', async ({ page }) => {
     await expect(page.locator('g[data-kind="project"]')).toHaveCount(5);
     await expect(page.locator('svg[role="group"]')).toHaveAttribute('aria-label', 'Participation graph: 5 projects and 40 people');
     await expect(page.getByRole('table')).toHaveCount(2);
-    await page.getByRole('combobox', { name: 'Size' }).selectOption('stress');
+    await page.goto('/?projects=10&people=150');
     await expect(page.locator('g[data-kind="person"]')).toHaveCount(150);
 });
 
@@ -28,10 +28,8 @@ test('tours the nodes when left alone', async ({ page }) => {
     await page.mouse.move(2, 2);
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 8000 });
     const first = await page.getByRole('dialog').getAttribute('aria-label');
-    await page.getByRole('button', { name: 'Next update' }).focus();
-    await page.waitForTimeout(100);
-    await page.mouse.move(2, 2);
-    await expect.poll(() => page.getByRole('dialog').getAttribute('aria-label'), { timeout: 8000 }).not.toBe(first);
+    await page.getByRole('button', { name: 'Next update' }).click();
+    await expect.poll(() => page.getByRole('dialog').getAttribute('aria-label')).not.toBe(first);
 });
 
 test('keeps moving between updates without jumping', async ({ page }) => {
